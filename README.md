@@ -2,6 +2,8 @@
 
 这是 Weideng 积累的学习笔记。
 
+为保证最佳显示效果（特别是公式），最好用 Typora 打开。
+
 ## Weideng 的 Linux C++ 笔记
 
 - Linux 运维，系统编程，网络编程
