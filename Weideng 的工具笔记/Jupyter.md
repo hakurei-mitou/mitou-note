@@ -1,4 +1,4 @@
-# jupyter
+# Jupyter
 
 文件后缀名：`.ipynb`（IPython Notebook）
 

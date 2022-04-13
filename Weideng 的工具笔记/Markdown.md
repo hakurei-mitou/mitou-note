@@ -1,12 +1,10 @@
 # Markdown
 
-后缀名：  .md
+后缀名：  `.md`
 
 推荐 typora 编辑器
 
-VS code 使用为例：
-
-开启实时预览：可点击右上角。
+以下以 VS code 使用为例，VS Code 内开启实时预览可点击右上角。
 
 Markdown 原生不支持字体大小与颜色，但可以 HTML 标签形式改变颜色
 

@@ -11,14 +11,19 @@
 
 ## Weideng 的数据结构与算法笔记
 
-- 常见数据结构
-- 基本算法
+- 数据结构
 - 算法技巧
+- 基础算法
+- 动态规划
+- 数学
+- 图论
 
 ## Weideng 的数据库笔记
 
-- MySQL
-- SQL Server
+- 关系型数据库
+	- MySQL
+	- SQL Server
+
 
 ## Weideng 的 Web 笔记
 
@@ -26,12 +31,23 @@
 
 ## Weideng 的工具笔记
 
-- Git
-- Jupyter
-- Markdown
-- Matlab
-- Vim
-- VS Code
+以下是粗略的分类，各工具完全可以灵活使用。
+
+- 编辑
+	- VS Code
+	- Vim
+
+- 文档
+	- Markdown
+	- Pandoc
+
+- 开发
+	- Git
+
+- 人工智能
+	- Jupyter
+	- Matlab
+
 
 ## Weideng 的考研笔记
 
