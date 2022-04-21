@@ -63,7 +63,7 @@ h4
 - 指定模板
 
 ```shell
-pandoc -f 输入格式 -t 输出格式 -o 输出文件名 输入文件 --reference-doc = FileName
+pandoc -f 输入格式 -t 输出格式 -o 输出文件名 输入文件 --reference-doc=FileName（等号不要空格）
 ```
 
 - 查看默认模板
@@ -73,3 +73,18 @@ pandoc --print-default-data-file reference.docx > custom-reference.docx   # 重�
 ```
 
 可以修改输出的模板文件，然后在导出时指定该文件作为模板，也可用其它文件作为模板。
+
+### 可能错误
+
+- 编码错误
+
+	当文件不是 UTF-8 编码时，Pandoc 可能会报错，可以使用 iconv 工具进行转码。（Linux 中一般会默认安装 iconv，可利用 LIunx 完成转码）
+
+- 图片路径错误
+
+	相对路径要使用 `.\` 。
+	
+- 工作目录
+
+  为保证相对路径的图片正常使用，工作目录应与 md 文件目录一致。
+
