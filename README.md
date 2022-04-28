@@ -47,6 +47,7 @@
 - 人工智能
 	- Jupyter
 	- Matlab
+	- Tableau
 
 
 ## Weideng 的考研笔记
