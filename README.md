@@ -33,17 +33,19 @@
 
 以下是粗略的分类，各工具完全可以灵活使用。
 
-- 编辑
+- 文档
 	- VS Code
 	- Vim
 
-- 文档
 	- Markdown
 	- Pandoc
-
+	- 键盘指法
+	
 - 开发
 	- Git
-
+	- Docker
+	- Mycat
+	
 - 人工智能
 	- Jupyter
 	- Matlab

@@ -74,10 +74,6 @@ Ctrl + Shift + Space ：主动触发参数提示
 
 ## 常用插件
 
-### 中文包
-
-![img](images/VS Code/clipboard-1617546104472.png)
-
 ### 各种语言
 
 #### C++

@@ -1,12 +1,8 @@
-# C++常用库
-
-## 概述
+# C++ 常用库
 
 当前列表只列出部分函数，并不会将库中的函数全部列出。
 
-输入输出用熟一些基本的操作就可以了，文件相关的操作不是很重要。
-
-STL（即算法库、容器库）是重点要掌握的内容。
+本笔记大部分是 STL（Standard Template Library， 标准模板库）的内容，STL 包含了算法库、工具库、迭代器库、容器库等内容。
 
 ## 输入输出库
 
@@ -265,6 +261,20 @@ C 改进库
 
 - ctime
 
+### < utility >
+
+- pair 类
+
+	提供两个元素的共同封装，是 tuple 的特殊情况。
+
+```c++
+构造
+    std::pair<T1, T2> pair;
+成员
+    first
+    second
+```
+
 ## 数值极限
 
 ### 宏
@@ -327,46 +337,77 @@ C 改进库
 
 ### < string >
 
-string 类
+- string 类
 
-## 容器库（STL， Standard Template Library， 标准模板库）
+	可以理解为一个特殊的顺序容器。
 
-### 在C++标准中，STL 包含以下头文件：
+```c++
+构造
+    std::string str;
+元素访问
+    []
+    front, back
+    c_str
+迭代器
+    begin, end
+容量
+    empty
+    size, length
+操作
+    clear
+    insert
+    erase
+    push_back, pop_back 针对单个字符
+    append 可后附字符串或多个字符
+    +=
+    compare 字典序
+    starts_with, ends_with 是否是前后缀（C++20）
+    contains 是否含子串（C++23）
+    substr 返回指定子串
+查找
+    find 查找字符
+数值转换
+    stoi, stol, stoll 转换为整数
+    stoul, stoull 转换为无符号整数
+    stof, stod, stold 转换为浮点型
 
-- < algorithm >
-- < vector >
-- < bitset >
-- < array >
-- < stack >
-- < queue >
-- < deque >
-- < forward_list >
-- < list >
-- < set >
-- < unorderd_set >
-- < map >
-- < unorderd_map >
-- < numeric >
-- < functional >
-- < iterator >
-- < memory.h >
-- < utility >
+模式匹配使用 strstr 函数。
+```
 
-### 主要有以下内容：
+## 容器库
+
+### 头文件
+
+```c++
+< bitset >
+< array >
+< vector >
+< stack >
+< queue >
+< deque >
+< forward_list >
+< list >
+< set >
+< unorderd_set >
+< map >
+< unorderd_map >
+```
+
+### 所含容器
 
 #### 顺序容器
 
 - array
 
-	C++11，静态连续数组
+	C++11，静态连续数组（固定大小）。
 
 - bitset
 
-	位数组
+	位数组，定长
 
 - vector
 
-	动态向量，可将模板类型置为 bool 特化为 bitset
+	动态向量，可将模板类型置为 bool 特化为变长的 bitset，但操作没有定长 bitset 丰富。
 
 - deque
 
@@ -392,46 +433,169 @@ string 类
 
 - priority_queue
 
-	优先队列，基于堆
+	优先队列，基于堆。
+
 #### 关联容器
 
-基于红黑树（Red Black Tree）
+即有序关联容器，基于**红黑树（Red Black Tree）**，元素有序。
 
 - set
 
-	唯一键集合，按照键排序
+	集合，键值唯一。
 
 - multiset
 
-	键集合，按照键排序
+	集合，键值可重复。
 	
 - map 
 
-	键值对集合，按照键排序，键值唯一
+	映射，键值唯一。
 	
 - multimap
 
-	键值对集合，按照键排序
+	映射，键值可重复。
 
 #### 无序关联容器
 
-基于散列（Hash、哈希）
+基于**散列（Hash、哈希）**，解决冲突使用链地址法，元素无序。
 
 - unordered_set
 
-	C++11，唯一键集合，按照键生成散列
+	C++11，集合，键值唯一。
 	
 - unordered_multiset
 
-	C++11，键的集合，按照键生成散列
+	C++11，集合，键值可重复。
 
 - unordered_map
 
-	C++11，键值对集合，按照键生成散列，键是唯一的
+	C++11，映射，键值唯一。
 
 - unordered_multimap
 
-	C++11，键值对集合，按照键生成散列
+	C++11，映射，键值可重复。
 
-一般查找操作较多时选择无序关联容器。
+### 容器概览
 
+容器间具有大量用法一致或相似的函数，以下只列出部分。
+
+#### array
+
+一般不使用，直接使用 `int arr[];` 。
+
+#### bitset
+
+```c++
+构造
+    std::bitset<N> biset;
+元素访问
+    []
+    test
+    all (c++11), any, none 检查是否为 true
+    count 返回 true 的数量
+容量
+    size
+修改器
+    与或非移位
+    set 置为 true
+    reset 置为 false
+    flip 翻转位
+转换
+    to_string
+    to_ulong, to_ullong 返回无符号整数表示
+```
+
+#### vector
+
+变长数组，以倍增的形式增长。
+
+```c++
+构造
+    std::vector<int> vec;
+	assign
+元素访问
+    []
+    front, back
+    data 直接访问底层数组
+迭代器
+    begin, end
+容量
+    empty
+    size
+    reserve 预留存储空间
+修改器
+    clear
+    insert
+    emplace, emplace_back 在指定位置直接构造元素，比先创建临时对象快。
+    erase
+    push_back, pop_back
+```
+
+#### stack
+
+```c++
+push
+top
+pop
+```
+
+#### 队列等
+
+```c++
+修改器
+    push_front, push_back
+    pop_front, pop_back
+```
+
+#### 链表等
+
+```c++
+操作
+    merge 合并
+    reverse 反转
+    unique 去重
+```
+
+#### set， map 等
+
+```c++
+查找
+    count 计数
+    find 查找
+    contains (C++ 20) 是否存在
+
+    equal_range 返回两个封装在 pair 中的迭代器，指示范围
+    lower_bound
+    upper_bound
+
+multi
+    不能使用 []
+unordered
+    不能使用 equal_range, lower_bound, upper_bound
+    自定义类型需要自定义哈希函数
+```
+
+### 注意事项
+
+#### map 的英文
+
+- 集合 Set
+- 映射 Map（Mapping 的缩写）
+
+#### 优先级
+
+以优先队列为例。
+
+- STL **重载比较符号**操作，只能重载小于（$\lt$）号
+- 容器比较的是元素优先级
+	- 优先级高的先出队（即小于号比较的数字的意义是优先级大小）
+	- 比如 int 类型默认较大的数优先级高，先出队（数字小则优先级小，不优先）。
+
+- 多级比较
+	- 优先级相等的元素的入队出队顺序不确定。
+	- 考虑增加参数，重载为多级比较，以严格限定顺序。
+
+#### 关联容器的选择
+
+- 当查找操作较多时，使用无序关联容器。（哈希表）
+- 当需要元素的顺序性质或修改操作较多，使用有序关联容器。（红黑树）
