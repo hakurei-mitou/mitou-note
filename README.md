@@ -36,7 +36,6 @@
 - 文档
 	- VS Code
 	- Vim
-
 	- Markdown
 	- Pandoc
 	- 键盘指法
