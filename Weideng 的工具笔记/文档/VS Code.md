@@ -82,15 +82,17 @@ Ctrl + Shift + Space ：主动触发参数提示
 
 ![img](images/VS Code/clipboard-1617546120863.png)
 
-#### python
+#### Python
 
-Anaconda 插件已经下架，但其只是扩展包，仍可使用 Python 扩展，解释器路径选择 conda 路径中的 Python 解释器即可。
+Anaconda 插件已经下架，但其只是扩展包，仍可使用 Python 扩展，解释器路径选择 Conda 路径中的 Python 解释器即可。
 
 ![image-20210404223215337](images/VS Code/image-20210404223215337.png)
 
 ![image-20210404223238963](images/VS Code/image-20210404223238963.png)
 
-Ctrl + Shift + P 搜索即可使用 jupyter。（Python 扩展中本就包含了 Jupyter 扩展）
+Ctrl + Shift + P 打开命令面板，搜索即可使用 jupyter。（Python 扩展中本就包含了 Jupyter 扩展）
+
+打开命令面板使用 `Pyhton: select interpreter` 即可切换 Conda 环境。
 
 ### 实用工具
 

@@ -4,6 +4,13 @@
 
 为保证最佳显示效果（特别是公式），最好用本地软件（如 Typora，VS Code）打开，避免网页显示错误。
 
+## Weideng 的人工智能笔记
+
+基于李宏毅《ML 2022 Spring》，周志华《机器学习》，李航《统计学习方法》
+
+- 经典机器学习
+- 深度学习
+
 ## Weideng 的 Linux C++ 笔记
 
 - Linux 运维，系统编程，网络编程
@@ -49,6 +56,7 @@
 	- Jupyter
 	- Matlab
 	- Tableau
+	- 常用包
 
 
 ## Weideng 的考研笔记
