@@ -56,7 +56,7 @@
 	- Jupyter
 	- Matlab
 	- Tableau
-	- 常用包
+	- 常用包与框架
 
 
 ## Weideng 的考研笔记
