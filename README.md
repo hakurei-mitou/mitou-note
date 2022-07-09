@@ -11,6 +11,7 @@
 - 经典机器学习
 - 深度学习
 - 最优化方法
+- 常用包与框架
 
 ## Weideng 的 Linux C++ 笔记
 
@@ -31,13 +32,19 @@
 - 关系型数据库
 	- MySQL
 	- SQL Server
+- 数据库中间件
+  - Mycat
 
 
-## Weideng 的 Web 笔记
+## Weideng 的前端笔记
 
-- HTML/CSS/JavaScript
+- 语言
+	- HTML
+	- CSS
+	- JavaScript
 
-## Weideng 的工具笔记
+
+## Weideng 的通用工具笔记
 
 以下是粗略的分类，各工具完全可以灵活使用。
 
@@ -47,17 +54,13 @@
 	- Markdown
 	- Pandoc
 	- 键盘指法
-	
 - 开发
 	- Git
 	- Docker
-	- Mycat
-	
 - 人工智能
 	- Jupyter
 	- Matlab
 	- Tableau
-	- 常用包与框架
 
 
 ## Weideng 的考研笔记
