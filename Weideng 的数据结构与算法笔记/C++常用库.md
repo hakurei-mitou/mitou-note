@@ -379,18 +379,18 @@ C 改进库
 ### 头文件
 
 ```c++
-< bitset >
-< array >
-< vector >
-< stack >
-< queue >
-< deque >
-< forward_list >
-< list >
-< set >
-< unorderd_set >
-< map >
-< unorderd_map >
+<bitset>
+<array>
+<vector>
+<stack>
+<queue>
+<deque>
+<forward_list>
+<list>
+<set>
+<unorderd_set>
+<map>
+<unorderd_map>
 ```
 
 ### 所含容器
