@@ -9,6 +9,14 @@
 	
 - 神经图灵机（Neural Turing Machine，NTM）
 
+注意区分：
+
+- RNN 层数
+
+- 循环次数（时间步数，Time Step）
+
+	输入数据训练的次数。（若每次输入一个向量，则是向量总数）
+
 ## 应用示例
 
 - 槽填充（Slot Filling）
@@ -68,15 +76,15 @@ RNN 会将 hidden layer 的输出存储下来，作为下一次输入的附加�
 
 - Input Gate
 
-	由信号控制何时输入。
+	由信号控制输入。
 
 - Output Gate
 
-	由信号控制何时输出。
+	由信号控制输出。
 
 - Forget Gate
 
-	由信号控制何时变换（“遗忘”）一些信息。
+	由信号控制变换（“遗忘”）一些信息。
 
 ![image-20220727101711538](images/RNN/image-20220727101711538.png)
 
@@ -105,7 +113,7 @@ RNN 会将 hidden layer 的输出存储下来，作为下一次输入的附加�
 真正的结构还会将以下两项连接到下一状态的输入（向量拼接）：
 
 - LSTM hidden layer 的输出  $\boldsymbol h^{(t)}$ ，被称为**隐状态（Hidden State）**，其包含了之前状态的信息。
-- memory cell 中的 $\boldsymbol c^{(t)}$ ，被称为**记忆状态（Memory State）**，也被称为 **peephole** 。
+- memory cell 中的 $\boldsymbol c^{(t)}$ ，被称为**记忆状态（Memory State）**，这条连接也被称为 **peephole** 。
 
 ![image-20220728184855524](images/RNN/image-20220728184855524.png)
 
@@ -125,16 +133,16 @@ GRU 结构如下：（左下角为 LSTM 结构简图）
 
 其中：
 
-- $\boldsymbol x^{t}$ 经过黄色箭头代表的转换矩阵变为 $\boldsymbol h^{\prime}$ 。
+- $\boldsymbol x^{t}$ 与 $\boldsymbol h^{(t-1)}$ 拼接后经过黄色箭头代表的转换矩阵变为 $\boldsymbol h^{\prime}$ 。
 - $\boldsymbol h^{(t)}$ 由 $\boldsymbol h^{(t-1)}$ 和 $\boldsymbol h^{\prime}$ 一起计算得来，$\boldsymbol z$ 与 $\boldsymbol {1-z}$  的权重分配调整二者的作用强度，一个强时，另一个就弱。
 - **更新门（Update Gate）**相当于 LSTM 的 input gate 和 forget gate 。依据 $\boldsymbol z$ 与 $\boldsymbol {1-z}$  的权重分配，GRU 相当于联动了 LSTM 的 input gate 与 fotget gate ，即当有新到东西进来多时，就会忘掉多的东西，新的东西进来少时，就会忘掉少的东西。
 - **重置门（Reset Gate）**仅对 $\boldsymbol h^{(t-1)}$ 做转换。
 
-对比可以看到，LSTM 单层需要 $4$ 个权重参数矩阵（黄色，绿色，浅蓝色，深蓝色），GRY 只需要 $3$ 个（深蓝色，浅蓝色，黄色）。
+对比可以看到，LSTM 单层需要 $4$ 个权重参数矩阵（黄色，绿色，浅蓝色，深蓝色），GRU 只需要 $3$ 个（深蓝色，浅蓝色，黄色）。
 
 ## RNN 的训练
 
-RNN 可以使用梯度下降训练，常称为 **Backpropagation throught Time（BPTT）**算法。
+RNN 可以使用梯度下降训练，但要结合之前的状态参数，常称为 **Backpropagation throught Time（BPTT）**。
 
 ### SimpleRNN
 
@@ -142,11 +150,21 @@ SimpleRNN 是不易训练的，我们期望的 loss 应当是蓝色线，但实�
 
 ![image-20220728192021658](images/RNN/image-20220728192021658.png)
 
-考虑中 RNN 在 BPTT 的状况：
+考虑 SimpleRNN 在 BPTT 的状况：
 
 ![image-20220730213246321](images/RNN/image-20220730213246321.png)
 
-其中，？？？
+其中，$\boldsymbol x^{(n)}$ 是每层的输入，$\boldsymbol a^{(n)}$ 是每层的输出，$\boldsymbol W$ 是参数矩阵，$\boldsymbol \delta^{(n)}$ 是每一层的梯度的 error signal 。
+
+梯度：
+$$
+\frac {\partial C^{(n)}} {\partial w} = 
+\frac {\partial C^{(n)}} {\partial y^{(n)}} \frac {\partial y^{(n)}} {\partial w}\ , \ 
+\delta^{(n)} = \frac {\partial y^{(n)}} {\partial w}
+$$
+假设 linear activation function 时，由图中 $\boldsymbol \delta^{(1)} = \boldsymbol W^{(n-1)} \boldsymbol \delta^{(n)}$ ，有 $\boldsymbol W \gt 1$ 时，$\boldsymbol \delta^{(1)}$ 会在指数的作用下变得特别大，$\boldsymbol W \gt 1$ 时，会特别小。
+
+**循环次数**导致了梯度大小受累计的参数大小的影响非常大，次数越大，梯度消失和梯度爆炸就越显著。
 
 从而 SimpleRNN 的 error surface 要么十分平坦（梯度小），要么十分陡峭（梯度大）。
 

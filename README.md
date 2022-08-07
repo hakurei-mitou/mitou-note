@@ -23,8 +23,8 @@
 ### 开发类
 
 - Liunx C++
-- 数据库
 - Java
+- 数据库
 - 前端
 
 记录原理和应用要点。
@@ -65,6 +65,10 @@
 - 数学
 - 图论
 
+## Weideng 的 Java 笔记
+
+- Java 相关
+
 ## Weideng 的数据库笔记
 
 - 关系型数据库
@@ -80,6 +84,9 @@
 	- HTML
 	- CSS
 	- JavaScript
+- 框架
+  - Vue
+
 
 
 ## Weideng 的通用工具笔记
