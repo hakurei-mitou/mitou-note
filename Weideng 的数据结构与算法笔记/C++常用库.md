@@ -469,7 +469,7 @@ C 改进库
 
 - unordered_map
 
-	C++11，映射，键值唯一。
+	C++11，映射，键值唯一。（唯一键没有同义词链）
 
 - unordered_multimap
 
@@ -556,23 +556,39 @@ pop
     unique 去重
 ```
 
-#### set， map 等
+#### set map 等
 
 ```c++
+访问
+    []
 查找
     count 计数
-    find 查找
+    find 查找，返回迭代器
     contains (C++ 20) 是否存在
 
     equal_range 返回两个封装在 pair 中的迭代器，指示范围
     lower_bound
     upper_bound
-
+修改器
+    insert
+    [] 若没有该 key 则插入 value 
+    clear
+ 	erase
+桶接口
+    begin，end 指定的桶的开始或末尾
+    bucket_count 返回桶数
+    max_bucket_count 返回桶的最大数量
+    bucket_size 指定桶中的元素数量
+    bucket 返回特定键的桶
+观察器
+    hash_function 返回使用的散列函数，可用于查看某个 key 的散列计算结果
+    key_eq 返回比较键值相等性的函数
+    
 multi
     不能使用 []
 unordered
     不能使用 equal_range, lower_bound, upper_bound
-    自定义类型需要自定义哈希函数
+    自定义 key 类型需要自定义哈希函数
 ```
 
 ### 注意事项

@@ -156,19 +156,19 @@ SQLTools
 
 **下载编译器后设置系统环境变量（步骤如下）：**
 
-**控制面板->系统（或电脑属性）->高级系统设置**
+控制面板->系统（或电脑属性）->高级系统设置
 
 ![img](images/VS Code/clipboard-1617546266468.png)
 
-**环境变量**
+环境变量
 
 ![img](images/VS Code/clipboard-1617546280358.png)
 
-**在系统变量 Path 中新建**
+在系统变量 Path 中新建
 
 ![img](images/VS Code/clipboard-1617546297109.png)
 
-**新建编译器 C:\****mingw64****\bin 路径即可**
+新建编译器 `C:\mingw64\bin` 路径即可
 
 ![img](images/VS Code/clipboard-1617546311179.png)
 

@@ -106,10 +106,18 @@ attention score :
 
 $\boldsymbol e_i$ 有多种设置方式，也可由机器学得。
 
-## 对比
+## 简要对比
 
-Self-attention 与 CNN
+- Self-attention 与 CNN
 
-Self-attention 与 RNN
+	CNN 是 self-attention 的子集，因此  self-attention 比 CNN 弹性更大，从而 CNN 一般比 self-attention 更适合训练资料少的情况，self-attention 在资料少时容易 overfitting 。
 
-Self-attention 与 GNN（Graph）
+- Self-attention 与 RNN
+
+  - RNN 也是 self-attention 的子集。
+  - self-attention 比 RNN 的关联信息的能力更强，对于两头的信息，RNN 要在一定的处理后才能将其联系考虑，而 self-attention 可以直接将其联系起来。
+  - self-attention 能够并行处理所有输入输出，不需要像 RNN 那样依序输入输出。
+
+- Self-attention 与 GNN（Graph）
+
+	GNN 也是 self-attention 的子集，对 Graph 处理得出有关联结点间的 ”attention score“ 。
