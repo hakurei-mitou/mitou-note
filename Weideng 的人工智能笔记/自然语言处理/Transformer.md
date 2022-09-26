@@ -43,8 +43,8 @@ encoder 的 block 重复 $N$ 次，decoder 的 block 也要重复 $N$ 次。
 
 依据输入输出方式，Transformer 的 decoder 有两种：
 
-- Autoregressive（AT）
-- Non-autoregressive（NAT）
+- Autoregressive Translation（AT）
+- Non-autoregressive Translation（NAT）
 
 #### AT
 
@@ -96,7 +96,7 @@ decoder 中承接 masked attention 的输出和 encoder 的输出的部分，称
 
 ![image-20220912145438837](images/Transformer/image-20220912145438837.png)
 
-cross attention 部分对其输入，一起逐步做 self-attention 。
+cross attention 部分将其输入整合在一起逐步做 self-attention 。
 
 第一步：
 
@@ -110,21 +110,31 @@ cross attention 部分对其输入，一起逐步做 self-attention 。
 
 ![image-20220912150914225](images/Transformer/image-20220912150914225.png)
 
-## 训练
-
-### Transformer
+## Loss Function
 
 每一次 decoder 产生的输出是一个表示词的向量，其各维的数值表示该维对应的单位向量的词的概率，整个向量表示一个概率分布。将这个向量与标准的单位向量做 cross entropy ，交叉熵越小，预测越准：（即是一次 Classification）
 
 ![image-20220912153748773](images/Transformer/image-20220912153748773.png)
 
-需要对每次生成的词最小化 cross entropy ：
+需要对每次生成的词最小化 cross entropy 。
+
+## 对于训练 Seq2Seq 模型的 Tips
+
+### 训练模式
+
+#### Free Runing Mode
+
+- 将上一个状态的输出作为下一个状态的输入。
+
+#### Teacher Forcing Mode
+
+- 使用 ground truth 作为输入。
+
+在训练时，直接输入 ground truth 中对应的上一项数据，即使模型的上一个输出错误，这样可以不断更正模型的统计属性。
 
 ![image-20220912154331037](images/Transformer/image-20220912154331037.png)
 
-### 对于训练 Seq2Seq 模型的 Tips
-
-#### Copy Mechanism
+### Copy Mechanism
 
 例如在 chat-bot 中，出现一个特定的词组，机器不需要彻底理解它，只需要理解它的使用方式，在使用时从输入复制到输出即可：
 
@@ -134,7 +144,7 @@ cross attention 部分对其输入，一起逐步做 self-attention 。
 
 实现可参见 Pointer Network 。
 
-#### Guided Attention
+### Guided Attention
 
 在实际训练中，attention 可能导致 input 与 output 的对应不符合应当的方式，例如方向。
 
@@ -147,7 +157,7 @@ guided attention 可以为 attention 添加 input 和 output 对应方式的约�
 - Monotonic Attention
 - Location-aware Attention
 
-#### Beam Search
+### Beam Search
 
 假设字符集只有 A，B，输出一个句子的可能状态就是一颗树，当每一步都优先选分数高的路径时（贪心），最终的路径不一定是最好的。
 
@@ -157,13 +167,13 @@ guided attention 可以为 attention 添加 input 和 output 对应方式的约�
 
 当字符集很大时，不可能穷举所有的状态，可以尝试 beam search，但 beam search 只更适用于有明确最优结果的任务，对于高创造性的任务需要添加随机性。
 
-#### Sampling
+### Sampling
 
 对于 Sentence Completation 和 TTS 等高创造性任务，需要为模型添加随机性。
 
 不只是 training 时添加 noise，在 test 时也要添加 noise 。
 
-#### BLEU Score
+### BLEU Score
 
 - 双语替换评测（BiLingual Evaluation Understudy，BLEU）
 
@@ -173,7 +183,7 @@ Transformer 一般的损失函数为 cross entropy 。
 
 但 training 时仍需要使用 cross entropy ，因为 BLEU Score 不可微分，若一定要在 training 时使用 BLEU Score ，考虑强化学习方式。
 
-#### Schedule Sampling
+### Schedule Sampling
 
 - Exposure Bias
 

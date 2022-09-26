@@ -50,11 +50,11 @@ $$
 
 ### 计算结构
 
-以 Dot-Product 为例。
+以 Dot-product 为例。
 
 ![image-20220726093445925](images/Self-attention/image-20220726093445925.png)
 
-其中，$\boldsymbol q_1$ 称为 query ，$\boldsymbol k_i$ 称为 key 。query 分别和每个 key 做点积，得到 $\alpha_{i,j}$ ，称为 attention score （ $\alpha_{1,1}$ 即是自己与自己的关联性）。
+其中，$\boldsymbol q_1$ 称为 query ，$\boldsymbol k_i$ 称为 key 。query 分别和每个 key 做点积，得到 $\alpha_{i,j}$ （该计算操作可称为 attend），称为 attention score （ $\alpha_{1,1}$ 即是自己与自己的关联性）。
 
 attention score 通过 Soft-max 转化，得到最终的关联性。
 
@@ -110,7 +110,8 @@ $\boldsymbol e_i$ 有多种设置方式，也可由机器学得。
 
 - Self-attention 与 CNN
 
-	CNN 是 self-attention 的子集，因此  self-attention 比 CNN 弹性更大，从而 CNN 一般比 self-attention 更适合训练资料少的情况，self-attention 在资料少时容易 overfitting 。
+  - CNN 是 self-attention 的子集，因此  self-attention 比 CNN 弹性更大，从而 CNN 一般比 self-attention 更适合训练资料少的情况，self-attention 在资料少时容易 overfitting 。
+  - 受卷积核大小所限，CNN 能一下看到的范围更小。
 
 - Self-attention 与 RNN
 
@@ -121,3 +122,187 @@ $\boldsymbol e_i$ 有多种设置方式，也可由机器学得。
 - Self-attention 与 GNN（Graph）
 
 	GNN 也是 self-attention 的子集，对 Graph 处理得出有关联结点间的 ”attention score“ 。
+
+## 变体
+
+self-attention 的变体有许多种，一般以“xxxformer”命名。
+
+假设输入的 sequence 长度为 $N$ ，当其特别大时，self-attention 中 query 和 key 运算成的 attention score 组成的 attention matrix 也会特别大，会降低运算效率。
+
+self-attention 一般作为网络的一个组件，当输入的 sequence 长度较小时，网络其它部分的计算量才是主要，此时加速 self-attention 的帮助不大。
+
+![image-20220916152619278](images/Self-attention/image-20220916152619278.png)
+
+### Local Attention / Truncated Attention
+
+可能对于某个位置，只需要其两边邻居的信息，就可以理解该位置的意义，于是可以将 attention matrix 中的大部分置 $0$ ：
+
+![image-20220916153819952](images/Self-attention/image-20220916153819952.png)
+
+此时只能感受到一个小范围内的信息，即相似于 CNN 。
+
+### Stride Attention
+
+考虑一定间隔位置的信息。
+
+![image-20220916155912087](images/Self-attention/image-20220916155912087.png)
+
+其中，灰色为置 $0$ ，左为空两格的情况，右为空一格的情况。
+
+### Global Attention
+
+为原输入序列引入 special token ，每个元素只与 special token 进行计算（attend），通过 special token 传递信息：
+
+- 将原序列内某些元素作为 special token 。
+- 为原序列添加 special token 。
+
+![image-20220916161540252](images/Self-attention/image-20220916161540252.png)
+
+### 组合共用
+
+- 在 multi-head attention 中，各个 head 可以使用不同的 attention matrix 计算策略。
+- 也可将其混合，在一个 head 中使用。
+
+![image-20220916162200758](images/Self-attention/image-20220916162200758.png)
+
+### Clustering
+
+对于 attention matrix 中较小的值，直接置 $0$ 影响不会太大，若能预测位置的值的大小（可能性），从而可以小值不计算，只关注较大的值。
+
+依据相似度对 query 和 key 聚类，采用复杂度低于 $O(n^2)$ （$n$ 为向量个数）的聚类算法：
+
+![image-20220917092622059](images/Self-attention/image-20220917092622059.png)
+
+只计算相同 cluster 内的 query 和 key ：
+
+![image-20220917092730082](images/Self-attention/image-20220917092730082.png)
+
+### Learnable Patterns
+
+在 **Sinkhorn Sorting Network** 中，直接使用 NN 学习，生成一个实数矩阵，然后转化为 binary  的矩阵表示计算 attention 的位置：
+
+![image-20220917095818311](images/Self-attention/image-20220917095818311.png)
+
+- 从 NN 输出的实数矩阵转化到 binary 矩阵的过程需要可微分，才能一起参与训练。
+
+- 该实数矩阵的维度可以比 attention matrix 小，以加快 NN 的计算速度。
+
+### Linformer
+
+输入中不一定都是有用的元素，可能存在大量的冗余的（redundant）元素，将这些冗余的部分去除，就可加快计算速度。
+
+从 $N$ 个 key 中选出有代表性的 $K$ 个 key ，同理，选出 $K$ 个 value ，然后计算 self-attention 的最终输出：
+
+![image-20220917102101345](images/Self-attention/image-20220917102101345.png)
+
+可以对 query 进行选取，但会影响输出序列的长度，具体影响 case by case 。
+
+选取策略：
+
+- 在 Compressed Attention 中，通过卷积减少向量的数量。
+- 在 Linformer 中，通过与一个 $N \times K$ 的矩阵相乘（即做线性变换）减少向量数量。
+
+![image-20220919133708733](images/Self-attention/image-20220919133708733.png)
+
+### Performer
+
+#### 乘法顺序
+
+忽略 softmax ，得到输出的过程可以表示为三个矩阵相乘：
+
+![image-20220919134506036](images/Self-attention/image-20220919134506036.png)
+
+其中，$\boldsymbol V$ 的 $d^\prime$ 一般取等于 $d$ 。
+
+将其（后乘）变为先计算 $\boldsymbol V \boldsymbol K^T$ （先乘），二者结果一致，但先乘更快：
+
+![image-20220919134611064](images/Self-attention/image-20220919134611064.png)
+
+#### 乘法次数
+
+- 后乘共需要 $(d + d^\prime) N^2$ 次。
+
+![image-20220919135741295](images/Self-attention/image-20220919135741295.png)
+
+- 先乘共需要 $2d^\prime d N$ 次。
+
+![image-20220919135810728](images/Self-attention/image-20220919135810728.png)
+
+显然有：（$N$ 是输入序列的长度，值会非常大）
+$$
+(d + d^\prime) N^2 \gt 2d^\prime d N
+$$
+
+#### 考虑 softmax
+
+一般的计算过程：
+
+![image-20220919144956929](images/Self-attention/image-20220919144956929.png)
+
+假设存在函数 $\phi(\boldsymbol x)$ ，有：
+$$
+exp(\boldsymbol q \cdot \boldsymbol k) = \phi(\boldsymbol q) \cdot \phi(\boldsymbol k)
+$$
+转换并得到分母的矩阵表示：
+
+![image-20220919151306347](images/Self-attention/image-20220919151306347.png)
+
+对于分子：
+
+![image-20220919151550407](images/Self-attention/image-20220919151550407.png)
+
+得到分子的矩阵表示：
+
+![image-20220919151909321](images/Self-attention/image-20220919151909321.png)
+
+其中，$M$ 是 $\boldsymbol q$ 和 $\boldsymbol k$ 的维度。
+
+分子分母放在一起有：
+
+![image-20220919152814277](images/Self-attention/image-20220919152814277.png)
+
+其中，分子的蓝色矩阵和分母的黄色向量**只需要计算一次**，当计算 $\boldsymbol b^{(2)}$ 时，只需要更换 $\boldsymbol q^{(1)}$ 为 $\boldsymbol q^{(2)}$ 。
+
+#### 简化的计算流程
+
+1. 将 $\boldsymbol k$ 转换为 $\phi(\boldsymbol k)$ ，这个转换只需要一次。
+2. $\phi(\boldsymbol k)$ 与 $\boldsymbol v$ 计算，得到 $M$ 个向量。 
+3. 将 $\boldsymbol q$ 转换为 $\phi(\boldsymbol q)$ 。
+4. $\phi(\boldsymbol q)$ 与 $\boldsymbol M$ 个向量计算，得到 $\boldsymbol b$ 的分子。 
+
+![image-20220919154128164](images/Self-attention/image-20220919154128164.png)
+
+分母的运算类似。
+
+#### 函数构造
+
+如何确定 $\phi(\boldsymbol x )$ 呢？
+
+有以下四种模型的方式：
+
+- [Efficient attention](https://arxiv.org/pdf/1812.01243.pdf)
+- [Linear Transformer](https://linear-transformers.com/)
+- [Random Feature Attention](https://arxiv.org/pdf/2103.02143.pdf)
+- [Performer](https://arxiv.org/pdf/2009.14794.pdf)
+
+### Synthesizer
+
+Synthesizer 一样是将输入 $\boldsymbol a$ 转换为 $\boldsymbol v$ （value vector）, 然后与 attention matrix 的 $\boldsymbol a^\prime$ 运算，得到输出 $\boldsymbol b$ 。但 Synthesizer 不使用 $\boldsymbol q$ 和 $\boldsymbol k$ 产生 attention matrix ，而是直接将 attention matrix 作为网络参数，从而不需要再计算 attention 。
+
+![image-20220920163334586](images/Self-attention/image-20220920163334586.png)
+
+对于 Synthesizer ，输入不同的 sequence 的 attention matrix 都是一样的（因为作为网络参数），但并不会影响效果。
+
+### 变体对比
+
+- 圆点越大，用到的 memory 越多。
+- 纵轴越大，表现越好。
+- 横轴越大，速度越快。
+
+![image-20220920164257551](images/Self-attention/image-20220920164257551.png)
+
+## Attention-free
+
+使用其它方式替代 attention 。
+
+![image-20220920164049280](images/Self-attention/image-20220920164049280.png)
