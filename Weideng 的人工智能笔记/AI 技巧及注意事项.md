@@ -1,8 +1,8 @@
-# 算法技巧及注意事项
+# AI 技巧及注意事项
 
 ## 项目结构
 
-### 基本结构
+各组分间相互促进思考，反复修改，书写不是严格顺序。
 
 - 项目说明（Project Description）
 
@@ -10,17 +10,6 @@
 	- 目标
 	- 数据
 	- 策略
-
-- 空间分析（Space Analysis）
-
-	分析数据与模型的空间，构建满足空间条件的策略实现代码。（预先分析）
-
-	- 外存
-
-	- 内存
-
-	- 显存
-
 - 导入包（Import Package）
 
 ```python
@@ -33,10 +22,10 @@ import os
 
 import torch
 import torch.nn as nn
-from torch.utils.data import random_split, Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader
 ```
 
-- 配置（Configuration ）
+- 配置（Configuration）
 
 	使用 `Config` 类，设置类变量保存配置参数和超参数。
 	
@@ -46,14 +35,23 @@ from torch.utils.data import random_split, Dataset, DataLoader
 
 ```python
 class Config:   # 配置类
-    # environment
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'   # 类变量
-    seed = 923
-    save_path = './model.ckpt'
     
     # data path
     data_path = './data'
-    
+   
+    	# local or cloud
+    if 'kaggle/working' in os.getcwd(): 
+        at_cloud = True
+        # cloud items
+    else:
+        at_cloud = False
+        # local items
+        
+    # environment
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'   # 类变量
+    seed = 923
+    model_save_path = './model.ckpt'
+        
     # NN structure
     
     # ...
@@ -61,17 +59,10 @@ class Config:   # 配置类
     # training
     n_example = math.inf
     n_epoch = 1000
-    early_stop_epoch = 300
-    batch_size = 256
-     
-    # local or cloud
-    here_path = os.getcwd()
-    if 'kaggle/working' in here_path: 
-        # cloud items
-    else:
-        # local items
+    early_stop_epoch = 200
+    batch_size = 64
         
-	# local or could runing test
+	# runing test
     runing_test = True   # need be modified by hand
     if runing_test:
 	    n_example = 20
@@ -88,6 +79,7 @@ class ConfigTest:
     pass
 ```
 
+- 空间估计（Space Estimation）
 - 通用操作（General Operation）
 
 ```python
@@ -98,19 +90,13 @@ def same_seed(seed):
     torch.manual_seed(seed)   # 为 CPU 设置种子。
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)   # 为所有 GPU 设置种子。
-
-def split_train_valid(data, valid_ratio, seed):
-    valid_size = int(len(data) * valid_ratio)
-    train_size = len(data) - valid_size
-    train_set, valid_set = random_split(data, [train_size, valid_size], generator=torch.Generator().manual_seed(seed))
-    return train_set, valid_set
 ```
 
 - 数据处理（Data Processing）
 
-	多使用函数，便于四处调用修改。
+	各种处理函数，便于四处调用。
 
-- 数据预备（Data Preparation）
+- 数据集成（Data Integration）
 
 	构建 Dataset，Dataloader 。
 
@@ -118,19 +104,19 @@ def split_train_valid(data, valid_ratio, seed):
 
 - 训练流程（Training Loop）
 
+- 损失曲线（Loss Curve）
+
 - 测试、预测（Testing，Prediction）
 
-- 时间分析（Time Analysis）
+- 时间估计（Time Estimation）
 
-	进行时间测试，反复修改代码以提升效率。（反复运行并分析）
+- 时空分析（Time and Space Analysis）
 
-	- 数据处理时间
-	- 训练时间
-	- 测试时间
-	
 - 表现分析（Performance Analysis）
 
   分析模型的表现。
+
+## 项目风格
 
 ### 工程风格
 
@@ -199,7 +185,7 @@ def other_functions():
 def operation3():
     other_functions()
 
-operation3()   # 调用
+operation3()   # 调用，对于以后不必每次都重新运行的操作，适当新开一个 Cell ，比如建立数据集。
 
 ...
 
@@ -212,26 +198,12 @@ def main():   # 或者不使用 main，而使用其它的名字，继续扩展�
 main()   # 扩展时 begin 位置。
 ```
 
-## 输出刷新
-
-原生方法只能单行刷新，多行刷新需要使用库。
-
-- `\r` 可以移动到当前行开头，从而刷新输出。
-- 刷新的行不能有换行符，可在 `print()` 内指定 `end=''` 。
-- 刷新行后的第一个非刷新行需要在开头添加换行符。
-
-```python
-print(f'\r[{epoch + 1}/{Config.n_epoch}] train loss = {train_mean_loss:4f}, valid loss = {valid_mean_loss:.4f}', end='')
-
-print(f'\n[{epoch + 1}/{Config.n_epoch}] save model : train loss = {train_mean_loss:.4f}, valid loss = {valid_mean_loss:.4f}')
-```
-
 ## 运行测试
 
-更换环境要重新测试：
+云端和本地都要运行测试，因为云端可能有 GPU 等环境问题：
 
-- 本地
-- 云端
+- 本地（Local）
+- 云端（Cloud）
 
 程序流程测试：
 
@@ -248,7 +220,138 @@ print(f'\n[{epoch + 1}/{Config.n_epoch}] save model : train loss = {train_mean_l
 
 - 多步输入数据训练时，要测试最后一步结尾不足一步跨度的数据。
 
-## 空间控制
+## 时空估计与分析
+
+估计与分析的思想是一致的，只是主要目的不同：
+
+- 预估可以给项目决策提供参考。
+- 分析可比较准确地展示出项目实际需要的资源。
+
+### 基本概念
+
+- FLOPS（floating point operations per second）
+
+	每秒浮点运算次数。
+
+- FLOPs（floating point operations）（s 表复数）
+
+	（总）浮点运算次数，可衡量计算量。
+
+- GFLOPs
+
+	十亿次浮点运算，$1 GFLOPs = 10^9 FLOP$ 。
+	
+- MACs（floating point operations）（s 表复数）
+
+  有时也用 MAdd 表示，指乘加（$a + b \times c$）运算数，包含一个乘法，一个加法操作。通常 MACs 是 FLOPs 的两倍。
+
+### 时空估计
+
+#### 空间
+
+预估空间消耗，不断调整实现策略。（编码前依据策略估计）
+
+- 外存（External Memory，Disk）
+
+	主要是数据集大小。
+
+- 内存（Memory，RAM）
+
+	数据，模型，中间变量，系统环境。
+
+- 显存（Video Memory，可用 GPU 简要表示）
+
+	数据，batch，模型，中间变量。
+
+- 模型（Model Size）
+
+	参数量，大小。
+
+#### 时间
+
+时间在直接运行分析，这样比较简便。（编码后运行代码估计）
+
+由少量数据的情况估计全部数据的情况。
+
+- 数据处理
+- epoch
+
+### 时空分析
+
+#### 空间
+
+- 参数量
+- 内存，显存占用。
+
+#### 时间
+
+可用少量 example，epoch 等的运行状况推导预估总的时间。
+
+- CPU，GPU 占用。
+
+- FLOPs
+
+- 平均数据处理时间
+- 平均样本训练时间。
+- 平均样本测试时间，
+
+### 分析工具
+
+#### 运行时间
+
+- `time.time()`
+
+	真实时间。单位：秒。
+
+- `time.perf_counter()`
+
+	性能计数器的值，是 CPU 时间，包括睡眠时间，精度高
+
+- `time.process_time()`
+
+	进程运行时间，是 CPU 时间，不包括睡眠时间。
+
+```python
+import time
+
+begin = time.time()
+end = time.time()
+
+runing_time = end - begin
+```
+
+#### 显卡信息
+
+- `nvidia-smi` 命令。
+
+	可以查看显卡的信息。
+
+#### 网络参数和计算量
+
+- 有一定限制，具体限制见官方信息
+	- 拼接的模型组分的引用不能识别到，需要单独传入。
+	- 只支持卷积层和线性层。
+- torchstat 包
+
+```python
+from torchstat import stat
+
+stat(model, (input_shape))
+```
+
+- torchsummary 包
+
+```python
+# install torch-summary
+
+from torchsummary import summary
+
+summary(model, input_shape)
+```
+
+## 时空控制
+
+### 空间控制
 
 - 进行空间分析。
 
@@ -272,7 +375,7 @@ gc.collect()
   - 形成 batch 时只能每一步内 shuffle ，不能全局 shuffle 。
   - 此时建议缩减 epoch ，增大全体数据的循环次数。（数据处理会增加）
   - 训练流程变复杂，需要注意 epoch 数量的处理。
-- 训练时用到再读取和处理。（数据处理简单，且 epoch 较少时采用）
+- 用到时再读取和处理。（数据处理简单，且 epoch 较少时采用）
 
   - 多个 epoch 会反复 I/O 和处理数据，反复 I/O 和复杂的处理过程，会耗费大量的时间。
   - I/O 是非常耗时的，可能在 epoch 中反复数据处理消耗的时间还没有一次 I/O 多。
@@ -288,31 +391,51 @@ torch.load('xxx.pt')
 
 - 调整数据类型。
 
-## 时间控制
+### 时间控制
 
 
 
 ## Kaggle 使用
 
-- 时长
-	- CPU 与 GPU，每周限制 40 小时，每次 session 限制12 小时。
-	- 后台可以同时运行两个 session 。
-	- 计时包括交互运行时间和后台运行时间。
-	- 关闭页面前要记得关闭 session ，否则会一直占用运行时长直到一个小时超时。
+- 时间
+  - CPU 与 GPU，每周限制 30 小时，每次 CPU 和 GPU session 限制 12 小时，TPU session 限制 9 小时。
+  - 时间容量刷新时间为每周六北京时间早 8 点。
+  - 后台可以同时运行两个 session 。
+  - 计时包括交互运行时间和后台运行时间。
+  - 关闭页面前要记得关闭 session ，否则会一直占用运行时长直到 20 分钟超时。
 - 存储
-	- 外存 70 G 。
-	- 内存 13 G 。（环境本身约占 500 M，建议以 1 G 计算）
-	- 显存 16 G 。
+  - 外存 70 G 。
+  - 内存 13 G 。（环境本身约占 500 M，建议以 1 G 计算）
+  - 显存 16 G 。
+  - 输出文件夹（working）容量 20 G 。
 - 技巧
-	- Kaggle 不会在 12 小时限制前终止正在运行的程序。
-	- 当时长快用完时，在后台跑一个 12 小时的程序，等于白嫖约 12 小时；跑两个 12 小时的程序，等于白嫖约 24 小时。
+  - Kaggle 不会在 12 小时限制前终止正在运行的程序。
+  - 当时长快用完时，在后台跑一个 12 小时的程序，等于白嫖约 12 小时；跑两个 12 小时的程序，等于白嫖约 24 小时。
+  - 在训练完后可以在 Kaggle Jupyter Notebook 界面点击查看当次训练的存储和计算资源的占用情况。
+- 注意
+	- persistence 选项只针对 interactive session ，对 save version 不起作用。
 
-## 杂项
 
-- 测试数据在测试时再构建。
+## SkLearn 算法选择图
+
+![](images/AI 技巧及注意事项/SkLearn 算法选择图.png)
+
+![](images/AI 技巧及注意事项/SkLearn 算法选择图（中文）.png)
+
+## 训练技巧
+
+
+
+
+
+
+
+## 编码杂项
 
 - PyTorch 中方法名末尾如果带下划线，表示会修改变量本身（in-place）：`.abs_(), .abs()  ` 。
-- 编码测试使用小部分数据集和小参数，测试完后再正式训练。
 - `assert` 可用于调试。
-- 可跑一个 epoch 或一个 batch 以预估总训练时间。
-- 云端和本地都要运行测试，因为云端可能有 GPU 等环境问题。
+- Anaconda 不能直接安装的第三方包可以进入 anaconda prompt 中用 pip 安装。
+
+## 注意点杂项
+
+- 图像任务比单纯的数据任务更需要泛化性。

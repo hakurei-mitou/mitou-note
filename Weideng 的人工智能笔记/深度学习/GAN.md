@@ -2,14 +2,20 @@
 
 - 生成对抗网络（Generative Adversarial Network，GAN）
 
+	也可叫对抗式生成网络。
+
+	- 生成器（Generator）
+
+	- 判别器（Discriminator）
+
 - 条件 GAN（Conditional GAN）
 
-	需要 label 。
+  需要 label 。
 
 - 无条件 GAN（Unconditional GAN）
 
-	不需要 label ，只有生成器和辨别器的对抗。
-	
+  不需要 label ，只有生成器和辨别器的对抗。
+
 - 沃瑟斯坦 GAN（Wasserstein GAN，WGAN）
 
 - 循环 GAN（Cycle GAN）
@@ -18,7 +24,9 @@
 
 ### Generator
 
-将 NN 的 input 分为 $x$ 与 $z$ ，其中 $z$ 符合一个已知的简单 distribution ，每次给 NN 输入 $x$ 和 sample 出的$z$。
+将 NN 的 input 分为 $x$ 与 $z$ ，其中 $z$ 符合一个已知的简单 distribution ，每次给 NN 输入 $x$ 和 sample 出的  $z$ 。
+
+$x$ 相当于一个生成的种子，可以是一些对画面的描述等。
 
 由于 $z$ 是一个分布，故输出 $y$ 也是一个分布，此时的网络即起生成器的作用。
 
@@ -36,7 +44,7 @@
 
 ## 示例 Anime Faces Generation
 
-### generator
+### Generator
 
 假设 $z$ 符合 normal distribution ，每次 sample 出一个向量（一般设置为一个低维向量），输出一个图片（表示像素的长向量）：
 
@@ -259,7 +267,7 @@ $$
 
 控制 GAN 的输出，输入 conditional 的 $x$ 。
 
-### Text-to-image
+### Text-to-Image
 
 资料图片需要有对应的文字描述，随机扩展性由 $z$ 负责：
 
