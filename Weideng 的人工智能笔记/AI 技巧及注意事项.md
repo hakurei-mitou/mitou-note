@@ -422,9 +422,9 @@ torch.load('xxx.pt')
 
 ![](images/AI 技巧及注意事项/SkLearn 算法选择图（中文）.png)
 
-## 训练技巧
+## 训练技巧汇总
 
-
+？？？
 
 
 
