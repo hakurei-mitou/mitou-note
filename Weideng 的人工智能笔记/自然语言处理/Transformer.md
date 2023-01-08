@@ -1,6 +1,6 @@
 ## Transformer
 
-Transformer 是经典的 SeqSeq 模型，输入一个 sequence ， 输出一个 sequence ，分为 encoder 和 decoder 两个部分。
+Transformer 是经典的 SeqToSeq 模型，输入一个 sequence ， 输出一个 sequence ，分为 encoder 和 decoder 两个部分。
 
 ## 结构总览
 

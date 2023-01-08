@@ -15,6 +15,26 @@
 		- 切比雪夫网络（Chebshev Network，ChebNet）
 		- 图卷积网络（Graph Convolutional Network，GCN）
 
+## 基本概念
+
+- 空域（Spatial Domain）
+
+	以图片为例，空域是一张图片的一般状态，即像素的位置和像素值信息。
+
+	- Graph 的空域是 Graph 的一般状态，即结点与边的结构关系信息。
+
+- 傅里叶变换
+
+	将信号在时域和频域表示形式间转换。
+
+	- 时域（Time Domain）
+		- 横轴是时间。
+		- 纵轴是强度（幅度，振幅）。（某时间的最终叠加信号的强度）
+	- 频域（SpectralDomain）
+		- 横轴是频率。（变换到频域上即可将不同频率的信号分离出来）
+		- 纵轴是强度（幅度，振幅）
+
+	![image-20221128214534776](images/GNN/image-20221128214534776.png)
 
 ## Graph and Convolution
 
@@ -127,7 +147,7 @@ $$
 \boldsymbol h^{(k)}_v = 
 MLP^{(k)} \left( (1 + \epsilon^{(k)}) \boldsymbol h^{(k-1)}_v + \sum\limits_{neighbors(v)} \boldsymbol h^{(k-1)}_u \right)
 $$
-其中，$\boldsymbol h^{(k)}_v$ 为第 $k$ 层的 hidden representation ，$MLP$ 表示**多层感知（Multi Layer Perception，MLP）**， $\epsilon$ 可以由模型学习，但令 $\epsilon = 0$ ，结果也不会太差，此时相当于将自身与邻居一起加和。
+其中，$\boldsymbol h^{(k)}_v$ 为第 $k$ 层的 hidden representation ，$MLP$ 表示**多层感知机（Multi Layer Perception，MLP）**， $\epsilon$ 可以由模型学习，但令 $\epsilon = 0$ ，结果也不会太差，此时相当于将自身与邻居一起加和。
 
 - 加和（Sum）
 
@@ -138,8 +158,6 @@ $$
 Mean 无法分辨 $(a),(c)$ 中的两个 Graph ，Max 无法分辨 $(a),(b),(c)$ 中的两个 Graph 。
 
 ## Spectral-based Convolution
-
-频谱（spectrum）是信号与系统里的概念，以下只做粗糙的简述。
 
 ### 原理
 

@@ -64,6 +64,9 @@ Ctrl + Shift + Space ：主动触发参数提示
 
 上图：即 esc 下方那个按键
 
+- 新建终端：``Ctrl + Shift + ` ``   。
+- kill 终端：退出登录即可`exit` 或  `Ctrl + d`
+
 常配合：`Ctrl + 1 or 2 or 3...` **聚焦**到第 `n` 个编辑器。
 
 ![img](images/VS Code/clipboard-1617545962118.png)

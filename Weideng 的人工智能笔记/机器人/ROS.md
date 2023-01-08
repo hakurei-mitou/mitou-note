@@ -4,35 +4,42 @@
 
 	对机器人的软硬件进行抽象模块化的一套软件框架。
 
-[视频课程参考文档-赵虚左](http://www.autolabor.com.cn/book/ROSTutorials/)
+[视频课程文档-赵虚左](http://www.autolabor.com.cn/book/ROSTutorials/)
 
 ROS 是进程（也称为 Node，节点）的分布式框架，每个节点由一个进程表示。
 
-ROS 一般在 Ubuntu 上使用，新版本 ROS2 也可在 Windows 10 上使用，可能工作是使用历史上的版本，所以建议使用 Ubuntu 。
+ROS 一般在 Ubuntu 上使用，新版本 ROS2 也可在 Windows 10 上使用，可能工作时是使用历史上的版本，所以建议使用 Ubuntu 。
 
 ROS 程序一般使用 C++ 或 Python 。
 
 ## 使用注意
 
 - 安装的版本一定要和 Ubuntu 的版本对应上，否则会找不到包。
+
 - 安装可参考：[Ubuntu20.04.4安装ROS Noetic详细教程 - 知乎](https://zhuanlan.zhihu.com/p/515361781)
+
+- 允许从 ssh 远程启动图形界面程序
+
+	设置环境变量 `export DISPLAY=:0` 。（不要使用 `什么什么=offscreen` ，这会导致界面打不开）
 
 ## ROS 程序构建基本步骤
 
 1. 创建工作空间（workspace）
 
-	1. `mkdir -p demo_ws/src`
-	2. 在工作空间内使用 catkin_make 命令建立环境，会生成 build devel 两个文件夹。
+  1. `mkdir -p demo_ws/src`
+  2. 在工作空间内使用 catkin_make 命令建立环境，会生成 build devel 两个文件夹。
 
 2. 创建功能包并添加依赖
 
-  一般在 src 子目录下建立，使用 `catkin_create_pkg <自定义包名> roscpp rospy std_msgs` 命令。
+	 一般在 src 子目录下建立，使用 `catkin_create_pkg <自定义包名> roscpp rospy std_msgs` 命令。
 
-  - 包名没有特定扩展名。
-  - 该功能的依赖项
-	- roscpp 为 C++ 实现的库。
-	- rospy 为 Python 实现的库。
-	- std_msgs 为标准消息库。
+	  - 包名没有特定扩展名。
+
+	  - 该功能的依赖项
+		- roscpp 为 C++ 实现的库。
+		- rospy 为 Python 实现的库。
+		- std_msgs 为标准消息库。
+
 
 
 3. 编辑源文件
@@ -50,13 +57,13 @@ ROS 程序一般使用 C++ 或 Python 。
 
 int main(int argc, char *argv[])
 {
-    //执行 ros 节点初始化
+    // 执行 ros 节点初始化
     ros::init(argc,argv,"hello");   // 节点名称
     
-    //创建 ros 节点句柄(本例非必须)
+    // 创建 ros 节点句柄(本例非必须)
     ros::NodeHandle nh;
     
-    //控制台输出 hello world
+    // 控制台输出 hello world
     ROS_INFO("hello world!");   // 输出日志
 
     return 0;
@@ -114,7 +121,7 @@ catkin_install_python(
 
 ### launch 文件
 
-launch 文件可以一次并发（不是从上到下）启动多个节点，自动完成启动核心等动作（仍要先使用 `source` 和进行编译）。
+launch 文件可以一次并发（不是从上到下）启动多个节点，自动完成启动 roscore 等动作（仍要先使用 `source` 和进行编译）。
 
 - 在包内建立 launch 文件夹，然后建立 `文件名.launch` 文件（XML 格式），设置启动的节点：
 
@@ -179,9 +186,9 @@ launch 文件可以一次并发（不是从上到下）启动多个节点，自�
 
         编译空间，用于存放 CMake 和 catkin 的缓存信息、配置信息和其他中间文件。
 
-    - deve
+    - devel
 
-        开发空间，用于存放编译后生成的目标文件，包括头文件、动态&静态链接库、可执行文件等。
+        开发空间，用于存放编译后生成的目标文件，包括头文件、动态静态链接库、可执行文件等。
 
     - src 源码
 
@@ -205,7 +212,7 @@ launch 文件可以一次并发（不是从上到下）启动多个节点，自�
 
             	存储 Python 或 Shell 等脚本文件。
   
-            - src
+            - src（注意区分两个 src 层级）
   
             	存储 C++ 源文件。
   
@@ -268,7 +275,7 @@ launch 文件可以一次并发（不是从上到下）启动多个节点，自�
 
 话题相同可以互相通信。
 
-使用 RPC 协议和 TCP 协议。
+使用 RPC（Remote Procedure Call，远程过程调用）协议和 TCP 协议。
 
 ![image-20221031192235106](images/ROS/image-20221031192235106.png)
 
@@ -413,7 +420,7 @@ if __name__ == "__main__":   # 主入口
 ```
 
 - 记得添加可执行权限。
-- 注意，rospy 中没有 `spinOnce()` 函数，其有的 `.spin()` 函数功能为使该线程阻塞。rospy 有自己的处理回调函数的线程。
+- 注意，rospy 中没有 `spinOnce()` 函数，其有的 `.spin()` 函数的功能为使该线程阻塞。rospy 有自己的处理回调函数的线程。
 
 ### 消息类型
 
@@ -488,14 +495,14 @@ catkin_package(
 ```
 
 3. 使用 `catkin_make` 编译即可生成可以被 Python 或 C++ 调用的中间文件。
-  - 在 `devel/include` 中会生成 `类名.h` 文件，可由 C++ 导入。
-  - 在 `devel/lib` 中会生成 `_类名.py` 文件，可由 Python 导入。
+  - 在 `devel/include` 中会生成 `类名.h` 文件。
+  - 在 `devel/lib` 中会生成 `_类名.py` 文件。
 
 - C++ 使用
 
 ```
 # 导入
-#include "包名/类名.h"
+# include "包名/类名.h"
 //可修改 VS Code 的 C++ include 路径，以供代码提示。
 
 # 将包名作为其的名称空间。
@@ -707,9 +714,9 @@ if __name__ == "__main__":
 - Talker（参数设置者）
 - Listener（参数调用者）
 
-参数服务器是一个独立于所有节点的公共数据容器，可以被不同节点设置或获取数据。
+参数服务器是一个 ROS 中独立于所有节点的公共数据容器，可以被不同节点设置或获取数据。
 
-使用 RFC 协议。
+使用 RPC 协议。
 
 ![image-20221104105126583](images/ROS/image-20221104105126583.png)
 
@@ -751,7 +758,280 @@ ros::param::param()
 #### Python
 
 ```python
-rospy.*param()
+rospy.xxxparam()
+```
+
+### action 通信
+
+对于一个请求，有时需要一段时间才能返回最终的结果，（比如移动指令）我们希望在移动过程中（即返回结果前），服务端可以反馈一些过程信息给客户端（连续返回），此时可以使用 action 通信。
+
+交互图示：
+
+![image-20221202154743751](images/ROS/image-20221202154743751.png)
+
+- goal
+
+	目标任务。
+
+- cancel
+
+	取消任务。
+
+- status
+
+	服务端状态。
+
+- result
+
+	最终结果（只返回一次信息）。
+
+- feedback
+
+	连续反馈（可以返回多次信息）。
+
+#### action文件
+
+action、srv、msg 文件内的可用数据类型一致，且三者实现流程类似。
+
+1. 功能包依赖 `roscpp rospy std_msgs actionlib actionlib_msgs` 。
+2. 新建 action 目录，建立 `.action` 文件，文件内容分为三部分：
+
+```python
+# 请求参数（目标，目的）
+int32 num
+
+---
+
+# 最终结果
+int32 result
+
+---
+
+# 反馈内容
+float64 progress_bar
+```
+
+3. 编辑 `CMakeLists.txt` 。
+4. 编译后会生成 `.msg` 文件以及 cpp 和 python 的用于调用的文件。
+
+#### C++
+
+服务端：
+
+```c++
+#include "ros/ros.h"
+#include "actionlib/server/simple_action_server.h"
+#include "test/AddIntsAction.h"
+
+/*  
+    需求:
+        创建两个 ROS 节点，服务器和客户端，
+        客户端可以向服务器发送目标数据 N（一个整型数据）
+        服务器会计算 1 到 N 之间所有整数的和，这是一个循环累加的过程，返回给客户端，
+        假设每累加一次耗时 0.1s ，
+		需要服务器在计算过程中，每累加一次，就给客户端响应一次百分比格式的执行进度。
+
+    流程:
+        1.包含头文件;
+        2.初始化 ROS 节点;
+        3.创建 NodeHandle;
+        4.创建 action 服务对象;
+        5.处理请求，产生反馈与响应;
+        6.spin().
+*/
+
+typedef actionlib::SimpleActionServer<test::AddIntsAction> Server;
+
+// callback
+void cb(const test::AddIntsGoalConstPtr &goal, Server* server) {
+    // 获取目标值
+    int num = goal->num;
+    ROS_INFO("目标值:%d",num);
+    // 累加并响应连续反馈
+    int result = 0;
+    test::AddIntsFeedback feedback;   // 连续反馈
+    ros::Rate rate(10);   // 通过频率设置休眠时间
+    for (int i = 1; i <= num; i++) {
+        result += i;
+        // 组织连续数据并发布
+        feedback.progress_bar = i / (double)num;
+        server->publishFeedback(feedback);
+        rate.sleep();
+    }
+    // 设置最终结果
+    test::AddIntsResult r;
+    r.result = result;
+    server->setSucceeded(r);
+    ROS_INFO("最终结果:%d",r.result);
+}
+
+int main(int argc, char *argv[]) {
+    ros::init(argc,argv,"AddInts_server");
+    ros::NodeHandle nh;
+    // 创建 action 服务对象。
+    /* SimpleActionServer(ros::NodeHandle n, 
+                        std::string name, 
+                        boost::function<void (const test::AddIntsGoalConstPtr &)> execute_callback, 
+                        bool auto_start)
+    */
+    // actionlib::SimpleActionServer<test::AddIntsAction> server(....);
+    
+    Server server(nh, "addInts", boost::bind(&cb, _1, &server), false);
+    // _1 为占位符，表示传入回调函数的参数。
+    
+    // 开始处理请求，产生反馈与响应。
+    server.start();   // auto_start 若为 false ，则需要手动调用 start() 启动服务。
+ 
+    ros::spin();
+    return 0;
+}
+```
+
+客户端：
+
+有三个回调函数：
+
+- 处理最终结果的回调函数。（done）
+- 连接建立时的回调函数。（active）
+- 处理连续反馈的回调函数。（feedback）
+
+```c++
+#include "ros/ros.h"
+#include "actionlib/client/simple_action_client.h"
+#include "test/AddIntsAction.h"
+
+typedef actionlib::SimpleActionClient<test::AddIntsAction> Client;
+
+// 处理最终结果的回调函数。
+void done_cb(const actionlib::SimpleClientGoalState &state, const test::AddIntsResultConstPtr &result){
+    // 判断状态是否成功。
+    if (state.state_ == state.SUCCEEDED) {
+        ROS_INFO("最终结果:%d",result->result);
+    } else {
+        ROS_INFO("任务失败！");
+    }
+}
+
+// 服务激活，连接建立时的回调函数。
+void active_cb() {
+    ROS_INFO("服务已经被激活....");
+}
+
+// 处理连续反馈的回调函数。
+void feedback_cb(const test::AddIntsFeedbackConstPtr &feedback) {
+    ROS_INFO("当前进度:%.2f",feedback->progress_bar);
+}
+
+int main(int argc, char *argv[]) {
+    ros::init(argc,argv,"AddInts_client");
+    ros::NodeHandle nh;
+    // 创建 action 客户端对象。
+    // SimpleActionClient(ros::NodeHandle & n, const std::string & name, bool spin_thread = true)
+    // actionlib::SimpleActionClient<test::AddIntsAction> client(nh,"addInts");
+    Client client(nh, "addInts", true);
+    
+    // 等待服务启动
+    client.waitForServer();
+    // 发送目标，处理反馈以及最终结果;
+    /*  
+        void sendGoal(const test::AddIntsGoal &goal, 
+            boost::function<void (const actionlib::SimpleClientGoalState &state, const test::AddIntsResultConstPtr &result)> done_cb, 
+            boost::function<void ()> active_cb, 
+            boost::function<void (const test::AddIntsFeedbackConstPtr &feedback)> feedback_cb)
+
+    */
+    test::AddIntsGoal goal;
+    goal.num = 10;
+
+    client.sendGoal(goal, &done_cb, &active_cb, &feedback_cb);
+
+    ros::spin();
+    return 0;
+}
+```
+
+#### python
+
+服务端：
+
+```python
+#! /usr/bin/env python
+import rospy
+import actionlib
+from demo01_action.msg import *
+
+class MyActionServer:
+    def __init__(self):
+        # SimpleActionServer(name, ActionSpec, execute_cb=None, auto_start=True)
+        self.server = actionlib.SimpleActionServer("addInts", AddIntsAction, self.cb, False)
+        self.server.start()
+        rospy.loginfo("服务端启动")
+
+
+    def cb(self,goal):
+        rospy.loginfo("服务端处理请求:")
+        # 获取目标值
+        num = goal.num
+        # 循环累加，连续反馈
+        rate = rospy.Rate(10)
+        sum = 0
+        for i in range(1, num + 1):
+            # 累加
+            sum = sum + i
+            # 计算进度并连续反馈
+            feedBack = i / num
+            rospy.loginfo("当前进度:%.2f", feedBack)
+
+            feedBack_obj = AddIntsFeedback()
+            feedBack_obj.progress_bar = feedBack
+            self.server.publish_feedback(feedBack_obj)
+            rate.sleep()
+        # 响应最终结果
+        result = AddIntsResult()
+        result.result = sum        
+        self.server.set_succeeded(result)
+        rospy.loginfo("响应结果:%d", sum)
+        
+if __name__ == "__main__":
+    rospy.init_node("action_server_p")
+    server = MyActionServer()
+    rospy.spin()
+```
+
+客户端：
+
+```python
+#! /usr/bin/env python
+
+import rospy
+import actionlib
+from demo01_action.msg import *
+
+def done_cb(state,result):
+    if state == actionlib.GoalStatus.SUCCEEDED:
+        rospy.loginfo("响应结果:%d", result.result)
+
+def active_cb():
+    rospy.loginfo("服务被激活....")
+
+
+def fb_cb(fb):
+    rospy.loginfo("当前进度:%.2f", fb.progress_bar)
+
+if __name__ == "__main__":
+    # 初始化 ROS 节点
+    rospy.init_node("action_client_p")
+    # 创建 action Client 对象
+    client = actionlib.SimpleActionClient("addInts",AddIntsAction)
+    # 等待服务
+    client.wait_for_server()
+    # 组织目标对象并发送
+    goal_obj = AddIntsGoal()
+    goal_obj.num = 10
+    client.send_goal(goal_obj, done_cb, active_cb, fb_cb)
+    # 编写回调函数：active、feedback，done 。
+    # spin
+    rospy.spin()
 ```
 
 ## 常用命令
@@ -775,7 +1055,7 @@ rosnode cleanup 清除不可连接的节点。
 
 ```shell
 rostopic bw     显示话题的带宽。
-rostopic delay  显示话题的延迟，通过 header 的信息。
+rostopic delay  显示话题的延迟，依据 header 的信息。
 rostopic echo   打印信息到屏幕。
 rostopic find   通过类型找到话题。
 rostopic hz     显示话题的发布频率。  
@@ -988,7 +1268,6 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
 ```
 
 回放，读 bag 文件。
@@ -1023,7 +1302,6 @@ int main(int argc, char *argv[])
     bag.close();
     return 0;
 }
-
 ```
 
 ### rqt 工具箱
@@ -1059,7 +1337,7 @@ rqt 工具箱提供了一些 GUI 调试工具。
 
 ## 机器人系统仿真
 
-有三部分：
+主要有三部分：
 
 - URDF（Unified Robot Description Format）
 
@@ -1078,7 +1356,7 @@ rqt 工具箱提供了一些 GUI 调试工具。
 - 仿真器所使用的物理引擎不能够完全精确模拟真实世界的物理情况。
 - 仿真器构建的是关节驱动器（电机和齿轮箱）、传感器等信号通信的绝对理想情况，不能模拟实际硬件缺陷或者一些临界状态等特殊情况。
 
-URDF 只是构建文件，不能单独使用，显示需要结合其它组件：
+URDF 只是构建文件，不能单独使用，显示模型需要 Rviz 或 Gazebo ：
 
 - 非仿真环境
 
@@ -1088,25 +1366,15 @@ URDF 只是构建文件，不能单独使用，显示需要结合其它组件：
 
 	使用 URDF 结合 Gazebo 搭建仿真环境，并结合 Rviz 显示感知的虚拟环境信息。
 
+建议使用别人已经建立好的机器人和仿真环境。
+
 ### URDF
 
 编辑 `.urdf` 文件，描述仿真机器人。
 
-一个简单的 urdf 文件：
+在 launch 中需要发布机器人不同组件的坐标系关系，可使用 ROS 预定义的机器人**连杆坐标系**和**关节坐标系**发布节点。
 
-```xml
-<robot name="mycar">
-    <link name="base">
-        <visual>
-            <geometry>
-                <box size="0.5 0.2 0.1" />
-            </geometry>
-        </visual>
-    </link>
-</robot>
-```
-
-#### urdf 方式
+#### urdf 语法
 
 urdf 文件是 XML 格式的文件，主要包含以下标签：
 
@@ -1126,7 +1394,7 @@ urdf 文件是 XML 格式的文件，主要包含以下标签：
 
 		- 不可视部分
 
-			惯性矩阵，碰撞参数等。
+			碰撞参数，惯性矩阵等。
 
 	- 各连杆的坐标系中心默认在其物理中心。
 
@@ -1169,7 +1437,7 @@ urdf 文件是 XML 格式的文件，主要包含以下标签：
 
 	- collision
 
-		碰撞属性。
+		碰撞参数。
 
 	- inertial
 
@@ -1229,97 +1497,785 @@ urdf 文件是 XML 格式的文件，主要包含以下标签：
 
 ![image-20221124183441072](images/ROS/image-20221124183441072.png)
 
-### xacro 方式
+##### base_footprint
+
+机器人模型可能是半沉到地下的，因为默认情况下，刚体的物理中心点位于地图原点。可以将基准 link 设置为一个尺寸极小的 link（比如半径为 0.001m 的球体，或边长为 0.001m 的立方体），然后再在基准 link 上添加底盘等刚体，这样虽然仍然存在基准 link 半沉的现象，但是基本可以忽略。这个基准 link 一般称之为 base_footprint 。
+
+以 base_footprint  为固定坐标系原点。
+
+若不使用 base_footprint  而使用初始偏移的方式，则 link 坐标系源点与 link 物理中心会有偏移，不利于后期复杂操作。
+
+##### check_urdf
+
+使用 check_urdf 工具可以检查 urdf 文件的语法是否正确。
+
+- 进入 urdf 文件所属目录，使用`check_urdf <urdf file>`，如果不抛出异常，说明文件合法，否则非法。
+
+#### Xacro 优化
+
+- Xacro（XML Macros）
+
+	一种可编程 XML ，通过变量，函数等优化只含有固定值的 urdf 语法。
+
+##### 文件使用
+
+xacro 文件本质上是转换为 urdf 文件再被 ROS 使用，两种方式：
+
+- 命令行进入 xacro 文件目录，执行`rosrun xacro xacro xxx.xacro > xxx.urdf`, 可将 xacro 文件解析为 urdf 文件。
+- 也可直接在 launch 文件使用 xacro 文件，系统会自行转化为 urdf 文件再利用。
+
+##### 基本语法
+
+- 命名空间
+
+	robot 根标签必须包含命名空间声明：`xmlns:xacro="http://wiki.ros.org/xacro"` 。
+
+- 属性
+
+	相当于定义变量。
+
+```xml
+定义:
+<xacro:property name="xxxx" value="yyyy" />
+
+调用
+${属性名称}
+```
+
+- 表达式
+
+```xml
+${数学表达式}
+```
+
+- 宏
+
+	类似函数。
+
+```xml
+定义：
+<xacro:macro name="宏名称" params="参数列表(多参数之间使用空格分隔)">
+
+    .....
+
+    参数调用格式: ${参数名}
+
+</xacro:macro>
 
 
+调用：
+<xacro:宏名称 参数1=xxx 参数2=xxx/>
+```
 
-### launch 配置
+- 文件组合
 
-需要发布机器人不同组件的坐标系关系，可使用 ROS 预定义的机器人**连杆坐标系**和**关节坐标系**发布节点。
+	可不同组件使用单独的 xacro 文件，然后在一个文件中组合多个文件组合成完整的机器人。
 
+```xml
+<robot name="robot" xmlns:xacro="http://wiki.ros.org/xacro">
+      <xacro:include filename="base.xacro" />
+      <xacro:include filename="camera.xacro" />
+      <xacro:include filename="laser.xacro" />
+      ....
+</robot>
+```
 
+#### SolidWorks
 
+可使用 SolidWorks 建立模型，然后导出为 urdf 或 xacro 文件。
 
+### Rviz
 
-？？？
+Rviz 用于显示传感器信息。
+
+使用 launch 集成 urdf 和 rviz ，启动后需要用 Add 按钮手动添加机器人模型显示插件。
+
+Rviz 内部的各种使用的内置插件可以保存到配置文件中，避免后续反复 add 内置插件。
+
+#### Arbotix
+
+使用 Arbotix 在 ROS 中的功能包可以控制模型运动。
+
+Arbotix 只能控制 Rviz 中的模型的运动。
+
+1. 下载 Arbotix 功能包，并将其移入工作空间 `src`目录，使用时需要 `catkin_make` 编译。
+
+```shell
+git clone https://github.com/vanadiumlabs/arbotix_ros.git
+```
+
+2. 在 `config` 文件夹编辑 Arbotix 配置文件（YAML 格式），示例如下：
+
+```yaml
+# 该文件是控制器配置,一个机器人模型可能有多个控制器，比如: 底盘、机械臂、夹持器(机械手)....
+# 因此，根 name 是 controller
+controllers: {
+   # 单控制器设置
+   base_controller: {
+          #类型: 差速控制器
+       type: diff_controller,
+       #参考坐标
+       base_frame_id: base_footprint, 
+       #两个轮子之间的间距
+       base_width: 0.2,
+       #控制频率
+       ticks_meter: 2000, 
+       #PID控制参数，使机器人车轮快速达到预期速度
+       Kp: 12, 
+       Kd: 12, 
+       Ki: 0, 
+       Ko: 50, 
+       #加速限制
+       accel_limit: 1.0 
+    }
+}
+```
+
+3. 使用 launch 文件启动 Arbotix 。（如果有缺少的 python 包，安装即可）
+4. 添加 Rviz 的 Odometry 功能插件，可指示方向与速度（即里程计的信息）。
+
+![image-20221125142858018](images/ROS/image-20221125142858018.png)
+
+5. 此时调用 rostopic list 会发现一个话题：`/cmd_vel`，可以发布 cmd_vel 话题消息控制模型运动，也可编写节点，或者直接通过如下命令发布消息:
+
+```shell
+rostopic pub -r 10 /cmd_vel geometry_msgs/Twist \
+'{linear: {x: 0.2, y: 0, z: 0}, angular: {x: 0, y: 0, z: 0.5}}'
+```
+
+### Gazebo
+
+模拟传感器及环境，详见 [官方文档](https://classic.gazebosim.org/tutorials?tut=ros_gzplugins) 。
+
+#### 运动属性
+
+xacro 文件在 Gazebo 中使用时：
+
+- 必须添加 collision 标签（碰撞参数）
+
+	因为是仿真环境，那么必然涉及到碰撞检测。
+
+- 必须添加 inertial 标签（惯性矩阵）
+
+	此标签标注了当前机器人某个刚体部分的惯性矩阵，用于一些力学相关的仿真计算。
+
+- 颜色只能使用 gazebo 标签
+
+	因为颜色设置可能为了方便调试包含透明度，仿真环境下没有透明度。
+
+Gazebo 也可使用 SolidWorks 导出的模型文件。
+
+对于 collision ，如果机器人 link 是标准的几何体形状，复制 link 的 visual 的 geometry 和 origin 一致即可。
+
+对于 inertial ，一般有：
+
+- 球体惯性矩阵
+
+- 圆柱惯性矩阵
+
+- 立方体惯性矩阵
+
+原则上，除 base_footprint 外，机器人的每个刚体部分都需要设置惯性矩阵，且惯性矩阵必须经计算得出，如果随意定义刚体部分的惯性矩阵，那么可能会导致机器人在 Gazebo 中出现抖动，移动等现象。
+
+#### 环境搭建
+
+- 可以自行使用 Gazebo 的 GUI 搭建环境并保存。
+- 也可直接使用已搭建好的 `.world` 文件。
+
+使用 world 文件通过 launch 文件即可。
+
+### launch 配置汇总
+
+#### 使用 Rviz
 
 ```xml
 <launch>
-    <!-- 将 urdf 文件内容设置进参数服务器 -->
-    <param name="robot_description" textfile="$(find demo01_urdf_helloworld)/urdf/urdf/test.urdf" />
+    
+    <!-- 设置参数，将 urdf 文件的路径传入参数服务器的 robot_description 参数 -->
+    <param name="robot_description" textfile="$(find rviz_test)/urdf/first_model.urdf" />
 
+    <!-- 设置参数，将 xacro 文件的路径传入参数服务器的 robot_description 参数 -->
+    <param name="robot_description" command="$(find xacro)/xacro $(find rviz_test)/xacro/first_model.xacro" />
+    
     <!-- 启动 rivz -->
-    <node pkg="rviz" type="rviz" name="rviz_test" args="-d $(find demo01_urdf_helloworld)/config/helloworld.rviz" />
+    <node pkg="rviz" type="rviz" name="rviz" />
 
+    <!-- 加载 rviz 的配置文件启动 rviz -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rviz_test)/config/first_model.rviz" />
+
+    <!-- 注意，自己的包名不能叫 rviz ， 否则需要删除工作空间中自建的名为 rviz 的相关文件夹-->
+    
     <!-- 启动机器人状态和关节状态发布节点 -->
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
     <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" />
 
-    <!-- 启动图形化的控制关节运动节点 -->
-    <node pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" name="joint_state_publisher_gui" />
-
+    <!-- 启动 Arbotix -->
+    <node name="arbotix" pkg="arbotix_python" type="arbotix_driver" output="screen">
+        <!-- 加载配置文件 -->
+    	<rosparam file="$(find rviz_test)/config/control.yaml" command="load" />
+        <!-- 表示当前为仿真环境 -->
+	    <param name="sim" value="true" />
+	</node>
+    
 </launch>
-
 ```
 
-
-
-### Rviz
-
-1. 创建功能包，导入依赖 `urdf` 或 `xacro` 或都导入。 
-
-2. 新建目录：
-
-	- `urdf`
-
-		存储 urdf 文件。
-
-	- `config`
-
-		配置文件。
-
-	- `launch`
-
-		存放 launch 文件。
-
-使用 lauch 文件集成 urdf ：
+#### 使用 Gazebo
 
 ```xml
 <launch>
 
-    <!-- 设置参数，将 urdf 文件的路径传入参数服务器的 robot_description 参数 -->
-    <param name="robot_description" textfile="$(find 包名)/urdf/urdf01_HelloWorld.urdf" />
+    <!-- 将 Urdf 文件的内容加载到参数服务器 -->
+    <param name="robot_description" textfile="$(find gazebo_test)/urdf/gazebo_model.urdf" />
 
-    <!-- 启动 rviz -->
-    <node pkg="rviz" type="rviz" name="rviz" />
-    
-    <!-- 使用配置文件启动 rviz -->
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find 包名)/config/rviz/show_mycar.rviz" />
-    
-    <!-- 注意，自己的包名不能叫 rviz ， 否则需要删除工作空间中自建的名为 rviz 的相关文件夹-->
-    <!-- 注意，要 roscore 已启动-->
+    <!-- 调用 gazebo 的预定义 launch 文件，启动 gazebo 的空 world 环境，勿改动该标签-->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch" />
+
+    <!-- 在 gazebo 中显示机器人模型，勿改动包名-->
+    <node pkg="gazebo_ros" type="spawn_model" name="model" args="-urdf -model mycar -param robot_description"  />
+	<!-- -urdf 表示使用 urdf 数据 -->
+    <!-- mycar 表示为模型命名为 mycar -->
+    <!-- -param 指定获取来源 -->
     
 </launch>
 ```
 
-启动 rviz 后需要用 Add 按钮手动添加机器人显示组件。
+使用已搭建好的简易 world 文件（`worlds/box_house.world`），使用标签：
 
-### Gazebo
+```xml
+<include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <!-- world_name 是 gazabo 使用 world 文件的内置参数名，勿改动 -->
+    <arg name="world_name" value="$(find gazebo_test)/world/box_house.world" />
+</include>
+```
 
+### 联合集成
 
+- URDF
 
+	定义模型。
 
+- Gazebo
 
+	模拟传感器及环境。
 
+- Rviz
 
+	显示传感器数据。
 
+#### 运动控制
 
-## 杂项
+Gazebo 中的机器人运动需要用到 ros_control 组件。
 
-- `shutdown()`
+ros_control 是一组软件包，包含了接口规范，只要符合该规范，不同平台就可以与 ROS 兼容。
 
-	关闭节点。
+Gazebo 实现了 ros_control 标准，可直接调用相关接口。
 
-- `ROS_DEBUG()` 
+基本流程：（一般使用已经建立好的第三方文件）
 
-	只在调试时生效，输出信息。
+1. 为创建好的机器人模型，编写一个单独的 xacro 文件，为机器人模型的 joint 添加**传动装置以及控制器**。
+2. 组合该 xacro 文件。
+3. 用 launch 启动 Gazebo ，通过 `/cmd_vel` 话题即可控制机器人运动。
+4. 启动 Rviz ，添加功能以显示里程计信息（位姿等）。
+
+#### 设备信息
+
+1. 为创建好的机器人模型，编写一个单独的 xacro 文件，为机器人模型添加**设备功能**（初始模型只是有了外观）。
+2. 组合该 xacro 文件。
+3. 用 launch 启动 Gazebo ，注意查看该设备发布的话题。
+4. 启动 Rviz ，添加功能以显示设备信息。
+
+## 机器人导航
+
+导航一般需要以下功能：
+
+- 全局地图
+- 自身定位
+- 路径规划
+- 运动控制
+- 环境感知
+
+### 导航功能包集
+
+一个二维导航堆栈，接收来自里程计、传感器流和目标姿态的信息，并输出发送到移动底盘的安全速度命令，详见官网 [navigation 软件包教程](http://wiki.ros.org/navigation) 。（各包使用前需要安装）
+
+![overview_tf](images/ROS/overview_tf.png)
+
+功能包限制：
+
+- 为差速驱动的轮式机器人设计，假设底盘受到理想的运动命令的控制并可实现预期的结果，命令的格式为：x 速度分量，y 速度分量，角速度（theta）分量。
+- 需要在底盘上安装一个单线激光雷达。这个激光雷达用于构建地图和定位。
+
+### SLAM 建图
+
+**gmapping 功能包**可以根据移动机器人**里程计数据**和**激光雷达数据**来绘制二维的栅格地图。
+
+核心结点为 slam_gmapping 。
+
+#### slam_gmapping
+
+其相关的话题，服务，参数，消息，坐标变换如下：（其它包类似，也要关注这些方面）
+
+- 订阅的 Topic
+
+	- tf
+
+		用于雷达、底盘与里程计之间的坐标变换消息。
+
+	- scan
+
+		雷达信息。
+
+- 发布的 Topic
+
+	- map_metadata
+
+		地图元数据，宽度、高度、分辨率等。
+
+	- map
+
+		地图栅格数据，可在 Rviz 中显示。
+
+	- ~entropy
+
+		机器人姿态分布熵估计（值越大，不确定性越大）。
+
+- 服务
+
+	- dynamic_map
+
+		用于获取地图数据。
+
+- 参数
+
+	- 坐标系相关参数
+
+	- ~map_update_interval
+
+		地图更新频率。
+
+	- ~maxUrange
+
+		激光探测最大长度范围。
+
+	- ~maxRange
+
+		激光探测最大角度范围。（二维，左右方向）
+
+- 所需的坐标变换
+
+	- 雷达坐标系 to 基坐标系
+
+		一般由 robot_state_publisher 或 static_transform_publisher 发布。
+
+	- 基坐标系 to 里程计坐标系
+
+		一般由里程计节点发布。
+
+- 发布的坐标变换
+
+	- 地图坐标系 to 里程计坐标系
+
+		地图到里程计坐标系之间的变换。
+
+#### 使用
+
+1. 启动 gazabo 仿真环境。
+2. 使用 launch 启动 gmapping 。
+3. 启动 rviz 添加 Map 功能，查看栅格地图数据。
+4. 使机器人动起来即可不断运动建图。
+
+地图需要单独保存。
+
+### 地图服务
+
+**map_server 功能包**中主要有 map_saver 和 map_server 两个节点。
+
+#### map_saver
+
+map_saver 用于保存地图：
+
+- 订阅的 Topic
+
+	- map
+
+		地图数据。
+
+在某个时刻使用 launch 即可保存地图：
+
+```xml
+<launch>
+    <arg name="filename" value="$(find robot_navigation)/map/nav" />
+    <node name="map_save" pkg="map_server" type="map_saver" args="-f $(arg filename)" />
+</launch>
+```
+
+指定路径下会生成两个文件：
+
+- `.pgm`
+
+	本质是图片，可直接以图片查看。
+
+- `.yaml`
+
+	地图元数据，描述地图的参数。
+
+#### map_server
+
+map_server 用于读取地图并以服务形式提供地图：
+
+- 发布的 Topic
+
+	- map_metadata
+
+		地图元数据。
+
+	- map
+
+		地图数据。
+
+- 服务
+
+	- static_map
+
+		可通过此服务获取地图。
+
+- 参数
+
+	- ~frame_id
+
+		地图坐标系。
+
+#### 使用
+
+读取地图数据后，即可在 rviz 中通过 map 话题查看地图数据：
+
+```xml
+<launch>
+    <!-- 设置地图的元数据文件（元数据文件内包含有地图文件路径） -->
+    <arg name="map" default="nav.yaml" />
+    <!-- 运行地图服务器，并且加载设置的地图-->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find robot_navigation)/map/$(arg map)"/>
+    <!-- 启动 rviz 查看 -->
+    <node pkg="rviz" type="rviz" name="rviz"/>
+</launch>
+```
+
+### 定位
+
+- 里程计定位
+
+	实时收集机器人运动信息并计算与父级坐标系的相对关系。
+
+	- 连续，无跳变。
+	- 有累计误差，不利于长距离和长时间定位。
+
+- 传感器定位
+
+	通过传感器收集外界环境信息进行匹配并计算与父级坐标系的相对关系。
+
+	- 精度较高。
+	- 定位信息不连续（跳变），在标志物、特征点较少时，定位精度会下降。
+
+- 使用里程计定位时，一般将 odom 作为父级坐标系。
+- 使用传感器定位时，一般将 map 作为父级坐标系。
+- 结合使用时，为了让机器人底盘（base）只有一个父级，一般设为 `map -> odom ->（base_link 或 base_footprint）` 。
+
+SLAM 中的定位用于构建全局地图，AMCL 中的定位用于当前机器人的位置。
+
+**amcl 功能包**是用于2D移动机器人的概率定位系统（被集成在 navigation 包中），可以结合里程计提高定位准确度。
+
+主要节点为 amcl 。
+
+#### amcl
+
+- 订阅的 Topic
+
+	- scan
+
+		激光雷达数据。
+
+	- tf
+
+		坐标变换消息。
+
+	- initialpose
+
+		用来初始化粒子滤波器的均值和协方差。
+
+	- map
+
+		地图数据。
+
+- 发布的 Topic
+
+	- amcl_pose
+
+		机器人的位姿估计。
+
+	- particlecloud
+
+		位姿估计集合，rviz 中可以被 PoseArray 订阅然后图形化显示机器人的位姿估计集合。
+
+	- tf
+
+		发布从 odom 到 map 的转换。
+
+- 服务
+
+	- global_localization
+
+		初始化全局定位的服务。
+
+	- request_nomotion_update
+
+		手动执行更新和发布更新的粒子的服务。
+
+	- set_map
+
+		手动设置新地图和姿态的服务。
+
+- 调用的服务
+
+	- static_map
+
+		调用此服务获取地图数据。
+
+- 参数
+
+	- ~odom_model_type
+
+		里程计模型选择。`"diff","omni","diff-corrected","omni-corrected"` （diff 差速、omni 全向轮）。
+
+	- 各坐标系。
+
+##### 使用
+
+启动 gazabo 用于显示地图，用 launch 集成 map_server 节点、amcl 节点、rviz 节点，再移动机器人即可看到估计点随着运动变密集。
+
+不需要即时定位时不使用 amcl 也可以进行路径规划和运动。
+
+### 路径规划
+
+**move_base** 功能包（属于 navigation 包）提供了基于动作（action）的（全局和局部）路径规划实现，可控制机器人移动到目标点，并在移动过程中不断反馈状态数据。
+
+核心节点为 move_base 。
+
+#### 代价地图
+
+保存的静态地图无法直接应用于导航，需要集成实时的障碍物数据（包括障碍物出现，消失，移动等），添加膨胀区等。
+
+代价地图有两张：
+
+- global_costmap（全局代价地图）
+
+	用于全局路径规划。
+
+- local_costmap（局部代价地图）
+
+	用于局部路径规划。
+
+包含多层，全局和局部路径规划的各层参数可以不一致：
+
+- Static Map Layer
+
+	静态地图层，SLAM 构建的静态地图。
+
+- Obstacle Map Layer
+
+	障碍地图层，传感器实时感知的障碍物信息。
+
+- Inflation Layer
+
+	膨胀层，对静态地图和障碍物在地图上的边缘进行膨胀，避免机器人过于靠近障碍物。
+
+- Other Layers
+
+	自定义 costmap 层。
+
+位置状态以灰度表示：
+
+- $0$
+
+	自由空间（free space）
+
+- $[1,127]$
+
+	非自由空间，接近障碍物的区域。
+
+- $[128,252]$
+
+	外切障碍，障碍物在机器人形状外切圆内，不一定发生碰撞。
+
+- $253$
+
+	内切障碍，障碍物在机器人形状内切圆内，必然碰撞。
+
+- $254$
+
+	致命障碍，障碍物与机器人形状中心重叠，必然碰撞。
+
+- $255$
+
+	未知区域。
+
+#### move_base
+
+- 动作订阅
+
+	- move_base/goal
+
+		运动目标。
+
+	- move_base/cancel
+
+		取消目标。
+
+- 动作发布
+
+	- move_base/feedback
+
+		连续反馈的信息，包含机器人底盘坐标等。
+
+	- move_base/status
+
+		发送到 move_base 的目标状态信息。
+
+	- move_base/result
+
+		操作结果。
+
+- 订阅的 Topic
+
+	- move_base_simple/goal
+
+		运动规划目标。（与 action 相比，没有连续反馈，无法追踪机器人的状态)
+
+- 发布的 Topic
+
+	- cmd_vel
+
+		输出到机器人底盘的运动控制消息。
+
+- 服务
+
+	- ~make_plan
+
+		请求该服务，只获取给定目标的规划路径，不执行移动。
+
+	- ~clear_unknown_space
+
+		允许用户直接清除机器人周围的未知空间。
+
+	- ~clear_costmaps
+
+		允许清除代价地图中的障碍物，可能会导致机器人与障碍物碰撞，慎用。
+
+- 参数
+
+	参见官网文档。
+
+#### 使用
+
+启动 move_base 的文件，需要调用配置文件（详见案例）：
+
+```xml
+<launch>
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
+        
+        <!-- 引入配置文件 -->
+        
+        <rosparam file="$(find robot_navigation)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find robot_navigation)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+
+        <rosparam file="$(find robot_navigation)/param/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find robot_navigation)/param/global_costmap_params.yaml" command="load" />
+        
+        <rosparam file="$(find robot_navigation)/param/base_local_planner_params.yaml" command="load" />
+    </node>
+</launch>
+```
+
+可能会出现机器人在本地路径规划与全局路径规划不符而进入膨胀区域出现假死的情况：
+
+- 全局代价地图可以将膨胀半径和障碍物系数设置得偏大一些；
+- 本地代价地图可以将膨胀半径和障碍物系数设置得偏小一些。
+
+这样，在全局路径规划时，规划的路径会尽量远离障碍物，而本地路径规划时，机器人即便偏离全局路径也会和障碍物之间保留足够的自由空间，从而避免陷入“假死”。
+
+启动导航的 launch 文件，需要集成各功能：
+
+```xml
+<launch>
+    <!-- 设置地图的配置文件 -->
+    <arg name="map" default="nav.yaml" />
+    
+    <!-- 运行地图服务器，并且加载设置的地图-->
+    <!-- 注释掉是为了避免和调用 launch 文件重复，也可将配置都写到一个 launch 文件 -->
+    <!-- <node name="map_server" pkg="map_server" type="map_server" args="$(find robot_navigation)/map/$(arg map)"/> -->
+    
+    <!-- 启动 AMCL 节点 -->
+    <include file="$(find robot_navigation)/launch/amcl.launch" />
+
+    <!-- 运行 move_base 节点 -->
+    <include file="$(find robot_navigation)/launch/move_base.launch" />
+    
+    <!-- 运行rviz -->
+    <!-- <node pkg="rviz" type="rviz" name="rviz" /> -->
+
+</launch>
+```
+
+1. 启动 gazebo ，显示机器人模型和环境。
+2. 启动导航 launch 文件。
+3. 启动 Rviz，添加功能组件，可将选择保存为配置。
+
+### 深度图像转激光数据
+
+ROS 中的 depthimage_to_laserscan 功能包可以将深度图像信息转换为激光雷达信息。
+
+安装：`sudo apt install ros-noetic-depthimage-to-laserscan`
+
+在深度图像的某个高度取一条线的数据即可作为雷达信息。
+
+- 优点
+
+	深度相机的成本一般低于激光雷达，可以降低硬件成本。
+
+- 缺点
+
+	深度相机较之于激光雷达无论是检测范围还是精度都有不小的差距，SLAM 效果可能不如激光雷达理想。
+
+核心节点为 **depthimage_to_laserscan** 。
+
+launch 设置：
+
+```xml
+<launch>
+    <node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="depthimage_to_laserscan">
+        <remap from="image" to="/camera/depth/image_raw" />
+        <!-- 设置坐标系 -->
+        <param name="output_frame_id" value="camera_link"  />
+    </node>
+</launch>
+```
+
+启动 gazebo 环境，启动 rviz 添加  image、LaserScan 组件，启动转换节点即可。
+
+#### 算法
+
+ROS 中主要有以下路径规划算法：
+
+全局规划：
+
+- Dijkstra，A* 等算法，`global_planner` 包。
+
+局部规划：
+
+- 使用 Trajectory Rollout 策略的 DWA 算法，`base_local_planner`包。（不建议使用）
+- DWA（Dynamic Window Approach）算法，`dwa_local_planner` 包。
+- TEB（Timed Elastic Band）算法，`teb_local_planner` 包。
+
+## 仿真与导航案例
+
+上述仿真与导航所需的代码均在内，详见 [UGV_navigation_example_package](https://github.com/HakureiWeideng/UGV_navigation_example_package) 。

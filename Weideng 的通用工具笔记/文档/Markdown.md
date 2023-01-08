@@ -101,9 +101,12 @@ Typora 的列表生成规范：
 
 ![img](images/Markdown/clipboard-1617545674405.png)
 
-反单引号：`` `  Esc下方含 `~` 的按键。
+反单引号：`` ` ``  Esc下方含 `~` 的按键。
 
-注意：反引号后加上语言的名字才有颜色渲染。
+注意：
+
+- 反引号后加上语言的名字才有颜色渲染。
+- 若要在行内打反单引号，可前后分别用两个反单引号，```  `` ` `` ``` ，以此类推，若要打两个反单引号，就用前后三个单引号。
 
 ## 数学公式
 
@@ -166,3 +169,97 @@ $$
 
 - 其中 `c|lcr` 表示在第一列和第二列间插入一条垂直分割线。
 - 多个表格放一起（嵌套数组或表格）参见公式手册。
+
+### 字母
+
+#### 英语字母
+
+英语字母借用了拉丁语的拉丁字母（Latin alphabet），拉丁字母也叫罗马字母（Roman alphabet），其发源于希腊字母（Greek alphabet）。
+
+26 大写，26 小写。
+
+##### 粗体字母
+
+向量和矩阵一般用粗体。LaTeX 中使用 `\boldsymbol ` 即可。
+
+##### 花体字母
+
+当一般字母和希腊字母不够用或易冲突时，可以使用花体字母。
+
+花体字母是英语字母的装饰性字体，常指圆体字或者斯宾塞体。
+
+LaTeX 中在英文字母前加 `\mathcal` 即可。
+
+| 英文大写字母 | 一般只使用大写花体 |
+| ------------ | ------------------ |
+| A            | $\mathcal A$       |
+| B            | $\mathcal B$       |
+| C            | $\mathcal C$       |
+| D            | $\mathcal D$       |
+| E            | $\mathcal E$       |
+| F            | $\mathcal F$       |
+| G            | $\mathcal G$       |
+| H            | $\mathcal H$       |
+| I            | $\mathcal I$       |
+| J            | $\mathcal J$       |
+| K            | $\mathcal K$       |
+| L            | $\mathcal L$       |
+| M            | $\mathcal M$       |
+| N            | $\mathcal N$       |
+| O            | $\mathcal O$       |
+| P            | $\mathcal P$       |
+| Q            | $\mathcal Q$       |
+| R            | $\mathcal R$       |
+| S            | $\mathcal S$       |
+| T            | $\mathcal T$       |
+| U            | $\mathcal U$       |
+| V            | $\mathcal V$       |
+| W            | $\mathcal W$       |
+| X            | $\mathcal X$       |
+| Y            | $\mathcal Y$       |
+| Z            | $\mathcal Z$       |
+
+#### 希腊字母
+
+即希腊语使用的字母，源自腓尼基字母。
+
+用于数学的希腊字母和在希腊语文字中的希腊字母字形和类别有许多差异，以下是 TeX 的希腊字母。
+
+大写的字母在名称首字母大写即可，变体常用作数学变量，加 `var` 即可，例如 `\vartheta`。
+
+| TeX 希腊字母名称 | 大写       | 小写       | 变体          |
+| ---------------- | ---------- | ---------- | ------------- |
+| Alpha            | $\Alpha$   | $\alpha$   |               |
+| Beta             | $\Beta$    | $\beta$    |               |
+| Gamma            | $\Gamma$   | $\gamma$   |               |
+| Delta            | $\Delta$   | $\delta$   |               |
+| Epsilon          | $\Epsilon$ | $\epsilon$ | $\varepsilon$ |
+| Digamma          | $\Digamma$ | $\digamma$ |               |
+| Stigma           | $\Stigma$  | $\stigma$  |               |
+| Zeta             | $\Zeta$    | $\zeta$    |               |
+| Eta              | $\Eta$     | $\eta$     |               |
+| Theta            | $\Theta$   | $\theta$   | $\vartheta$   |
+| Iota             | $\Iota$    | $\iota$    |               |
+| Kappa            | $\Kappa$   | $\kappa$   | $\varkappa$   |
+| Lambda           | $\Lambda$  | $\lambda$  |               |
+| Mu               | $\Mu$      | $\mu$      |               |
+| Nu               | $\Nu$      | $\nu$      |               |
+| Xi               | $\Xi$      | $\xi$      |               |
+| Omicron          | $\Omicron$ | $\omicron$ |               |
+| Pi               | $\Pi$      | $\pi$      | $\varpi$      |
+| Koppa            | $\Koppa$   | $\koppa$   |               |
+| Rho              | $\Rho$     | $\rho$     | $\varrho$     |
+| Sigma            | $\Sigma$   | $\sigma$   | $\varsigma$   |
+| Tau              | $\Tau$     | $\tau$     |               |
+| Upsilon          | $\Upsilon$ | $\upsilon$ |               |
+| Phi              | $\Phi$     | $\phi$     | $\varphi$     |
+| Chi              | $\Chi$     | $\chi$     |               |
+| Psi              | $\Psi$     | $\psi$     |               |
+| Omega            | $\Omega$   | $\omega$   |               |
+| Sampi            | $\Sampi$   | $\sampi$   |               |
+
+### 特殊符号
+
+- $\nabla$
+
+	名为 Nabla ，梯度算子，向量微分算子。

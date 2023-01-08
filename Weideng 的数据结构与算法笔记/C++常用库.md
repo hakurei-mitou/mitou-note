@@ -596,7 +596,7 @@ unordered
 #### map 的英文
 
 - 集合 Set
-- 映射 Map（Mapping 的缩写）
+- 映射 Map（动词，动名词形式为 Mapping）
 
 #### 优先级
 

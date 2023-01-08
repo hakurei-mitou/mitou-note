@@ -29,7 +29,7 @@
 
 ## 静态 stixel
 
-Badino, H., Franke, U., Pfeiffer, D. (2009). The Stixel World - A Compact Medium Level Representation of the 3D-World. In: Denzler, J., Notni, G., Süße, H. (eds) Pattern Recognition. DAGM 2009. Lecture Notes in Computer Science, vol 5748. Springer, Berlin, Heidelberg.
+[A Compact Medium Level Representation of the 3D-World 2009](https://www.cvlibs.net/projects/autonomous_vision_survey/literature/Badino2009DAGM.pdf)
 
 静态 stixel 基于双目立体视觉的 image pair 的一帧计算。
 
@@ -59,7 +59,7 @@ Badino, H., Franke, U., Pfeiffer, D. (2009). The Stixel World - A Compact Medium
 
 ## 动态 stixel
 
-D. Pfeiffer and U. Franke, "Efficient representation of traffic scenes by means of dynamic stixels," 2010 IEEE Intelligent Vehicles Symposium, 2010, pp. 217-224, doi: 10.1109/IVS.2010.5548114.
+[Efficient representation of traffic scenes by means of dynamic stixels 2010](https://www.cvlibs.net/projects/autonomous_vision_survey/literature/Pfeiffer2010IV.pdf)
 
 动态 stixel 追踪帧间 stixel 的 lateral 和 longitudinal 运动，可以区分静态和动态的 stixel 。
 

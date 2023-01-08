@@ -10,6 +10,7 @@
 	- 目标
 	- 数据
 	- 策略
+	- 代码环境
 - 导入包（Import Package）
 
 ```python
@@ -25,13 +26,45 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 ```
 
+- 包版本（Package Version）
+
+```python
+def package_version():
+
+    ! python -V
+
+    import pkg_resources
+    import types
+
+    poorly_named_packages = {
+        "PIL": "Pillow",
+        "sklearn": "scikit-learn"
+    }   # package name is different to import name
+
+    imports = []
+    for name, val in globals().items():
+        if isinstance(val, types.ModuleType):
+            name = val.__name__.split(".")[0]
+        elif isinstance(val, type):
+            name = val.__module__.split(".")[0]
+        if name in poorly_named_packages.keys():
+            name = poorly_named_packages[name]
+        imports.append(name)
+
+    for x in pkg_resources.working_set:
+        if x.project_name in imports and x.project_name != "pip":
+            print(f"{x.project_name} {x.version}")
+
+package_version()
+```
+
 - 配置（Configuration）
 
-	使用 `Config` 类，设置类变量保存配置参数和超参数。
-	
-	- 使用字典则无代码提示。
-	- 需要频繁修改的项靠下放。
-	- 配置只包含基本不变的参数。
+  使用 `Config` 类，设置类变量保存配置参数和超参数。
+
+  - 使用字典则无代码提示。
+  - 需要频繁修改的项靠下放。
+  - 配置只包含基本不变的参数。
 
 ```python
 class Config:   # 配置类
@@ -80,10 +113,10 @@ class ConfigTest:
 ```
 
 - 空间估计（Space Estimation）
-- 通用操作（General Operation）
+- 随机数种子（Random Seed）
 
 ```python
-def same_seed(seed): 
+def random_seed(seed): 
     torch.backends.cudnn.deterministic = True   # 卷积都使用默认的卷积算法
     torch.backends.cudnn.benchmark = False   # 关闭系统卷积算法选择优化（带随机性）
     np.random.seed(seed)   # 为随机算法设置种子。
