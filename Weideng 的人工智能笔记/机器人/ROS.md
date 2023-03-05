@@ -6,6 +6,8 @@
 
 [视频课程文档-赵虚左](http://www.autolabor.com.cn/book/ROSTutorials/)
 
+[ROS Tutorials](http://wiki.ros.org/ROS/Tutorials)
+
 ROS 是进程（也称为 Node，节点）的分布式框架，每个节点由一个进程表示。
 
 ROS 一般在 Ubuntu 上使用，新版本 ROS2 也可在 Windows 10 上使用，可能工作时是使用历史上的版本，所以建议使用 Ubuntu 。
@@ -26,7 +28,8 @@ ROS 程序一般使用 C++ 或 Python 。
 
 1. 创建工作空间（workspace）
 
-  1. `mkdir -p demo_ws/src`
+    `mkdir -p demo_ws/src`
+
   2. 在工作空间内使用 catkin_make 命令建立环境，会生成 build devel 两个文件夹。
 
 2. 创建功能包并添加依赖
@@ -39,8 +42,6 @@ ROS 程序一般使用 C++ 或 Python 。
 		- roscpp 为 C++ 实现的库。
 		- rospy 为 Python 实现的库。
 		- std_msgs 为标准消息库。
-
-
 
 3. 编辑源文件
 
@@ -108,8 +109,8 @@ if __name__ == "__main__":   # 主入口
 - 编辑包内的 Cmakelist.txt 文件：
 
 ```shell
-catkin_install_python(
-    PROGRAMS scripts/文件名.py
+catkin_install_python(PROGRAMS
+	scripts/文件名.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 ```
@@ -1056,7 +1057,7 @@ rosnode cleanup 清除不可连接的节点。
 ```shell
 rostopic bw     显示话题的带宽。
 rostopic delay  显示话题的延迟，依据 header 的信息。
-rostopic echo   打印信息到屏幕。
+rostopic echo   打印指定话题消息到屏幕。
 rostopic find   通过类型找到话题。
 rostopic hz     显示话题的发布频率。  
 rostopic info   显示活动话题的信息。
@@ -1209,7 +1210,7 @@ geometry_msgs::TransformStamped geometry_A_to_B =
     buffer.lookupTransform("B", "A", ros::Time(0))  # 计算两个时间间隔最近版本的坐标系的相对关系。
 ```
 
-## 常用工具
+## 一般工具
 
 ### rosbag
 
@@ -1329,11 +1330,433 @@ rqt 工具箱提供了一些 GUI 调试工具。
 
 - `rqt_plot`
 
-	但发布在 topic 上的数据，以 2D 图像显示。
+	发布在 topic 上的数据，以 2D 图像显示。
 
 - `rqt_bag`
 
 	录制和重放 bag 文件。
+
+### 动态参数
+
+参数服务器的数据被修改后必须要重新启动节点才能生效，动态参数配置（dynamic reconfigure）可自定义动态参数修改节点，立即修改参数服务器的参数，无需重启节点。一般用于参数调试、功能切换等场景。
+
+系统预定义节点的参数可以直接采用 rqt 界面动态修改参数。
+
+#### 指定参数
+
+1. 新建包 `demo_dr` ，导入依赖：`roscpp rospy std_msgs dynamic_reconfigure` 。
+2. 创建 `cfg/xxx.cfg` 文件，用于配置要修改的参数项，以及可能用到的修改方式。
+
+```python
+#! /usr/bin/env python
+
+from dynamic_reconfigure.parameter_generator_catkin import *
+PACKAGE = "demo_dr"   # 包名
+# 2.创建生成器
+gen = ParameterGenerator()
+
+# 向生成器添加若干参数
+#add(name, paramtype, level, description, default=None, min=None, max=None, edit_method="")
+gen.add("int_param",int_t,0,"整型参数",50,0,100)
+gen.add("double_param",double_t,0,"浮点参数",1.57,0,3.14)
+gen.add("string_param",str_t,0,"字符串参数","hello world ")
+gen.add("bool_param",bool_t,0,"bool参数",True)
+
+many_enum = gen.enum([gen.const("small",int_t,0,"a small size"),
+                gen.const("mediun",int_t,1,"a medium size"),
+                gen.const("big",int_t,2,"a big size")
+                ],"a car size set")
+
+gen.add("list_param",int_t,0,"列表参数",0,0,2, edit_method=many_enum)
+
+# 生成中间文件并退出
+exit(gen.generate(PACKAGE,"dr_node","dr"))
+```
+
+2. 添加可执行权限，配置编译文件，编译后会生成头文件。
+
+#### C++ 修改节点
+
+```c++
+#include "ros/ros.h"
+#include "dynamic_reconfigure/server.h"
+#include "demo_dr/drConfig.h"  // 调用生成的指定参数头文件
+
+void cb(demo_dr::drConfig& config, uint32_t level){
+    ROS_INFO("动态参数解析数据:%d,%.2f,%d,%s,%d",
+        config.int_param,
+        config.double_param,
+        config.bool_param,
+        config.string_param.c_str(),
+        config.list_param
+    );
+}
+
+int main(int argc, char *argv[])
+{
+    setlocale(LC_ALL,"");
+    ros::init(argc,argv,"dr_node");
+    // 创建服务器对象
+    dynamic_reconfigure::Server<demo02_dr::drConfig> server;
+    // 创建回调对象(使用回调函数，打印修改后的参数)
+    dynamic_reconfigure::Server<demo02_dr::drConfig>::CallbackType cbType;
+    cbType = boost::bind(&cb,_1,_2);
+    // 服务器对象调用回调对象
+    server.setCallback(cbType);
+
+    ros::spin();
+    return 0;
+}
+```
+
+#### python 修改节点
+
+```python
+#! /usr/bin/env python
+import rospy
+from dynamic_reconfigure.server import Server
+from demo_dr.cfg import drConfig
+
+# 回调函数
+def cb(config,level):
+    rospy.loginfo("python 动态参数服务解析:%d,%.2f,%d,%s,%d",
+            config.int_param,
+            config.double_param,
+            config.bool_param,
+            config.string_param,
+            config.list_param
+    )
+    return config
+
+if __name__ == "__main__":
+    # 初始化 ros 节点
+    rospy.init_node("dr_node")
+    # 创建服务对象
+    server = Server(drConfig,cb)
+    # 回调函数处理
+
+    rospy.spin()
+```
+
+#### 使用
+
+配置好编译文件，编译并启动编写好的修改节点，打开 rqt 即可看到修改指定参数的 GUI 界面。
+
+注意：修改节点不可缺少，rqt 需要通过修改节点才能打开 GUI 修改界面。（修改节点使用了生成的头文件）
+
+### pluginlib
+
+pluginlib 是一个 c++ 库，用于从一个功能包中加载和卸载插件（plugin）。
+
+插件指从运行时库中动态加载的类。
+
+一般步骤：
+
+1. 创建功能包。
+2. 创建基类。
+3. 创建插件类。
+4. 注册插件。
+5. 构建插件链接库。
+6. 使插件可用于 ROS 工具链：
+	- 配置 xml 。
+	- 导出插件 。
+7. 使用插件。
+8. 执行。
+
+以下以实现正多边形的相关计算的插件为例。
+
+创建功能包 `xxx`，导入依赖 `roscpp pluginlib` 。
+
+创建基类，在 `xxx/include/xxx` 下新建 C++ 头文件: `polygon_base.h`，所有的插件类都需要继承此基类：
+
+```c++
+#ifndef XXX_POLYGON_BASE_H_
+#define XXX_POLYGON_BASE_H_
+
+namespace polygon_base
+{
+  class RegularPolygon
+  {
+    public:
+      virtual void initialize(double side_length) = 0;
+      virtual double area() = 0;
+      virtual ~RegularPolygon(){}
+
+    protected:
+      RegularPolygon(){}
+  };
+};
+#endif
+```
+
+基类必须提供无参构造函数，所以关于多边形的边长没有通过构造函数而是通过单独编写的 initialize 函数传参。
+
+创建插件类，在 `xxx/include/xxx` 下新建 C++ 头文件：`polygon_plugins.h` ：
+
+```c++
+#ifndef XXX_POLYGON_PLUGINS_H_
+#define XXX_POLYGON_PLUGINS_H_
+#include <xxx/polygon_base.h>
+#include <cmath>
+
+namespace polygon_plugins
+{
+  class Triangle : public polygon_base::RegularPolygon
+  {
+    public:
+      Triangle(){}
+
+      void initialize(double side_length)
+      {
+        side_length_ = side_length;
+      }
+
+      double area()
+      {
+        return 0.5 * side_length_ * getHeight();
+      }
+
+      double getHeight()
+      {
+        return sqrt((side_length_ * side_length_) - ((side_length_ / 2) * (side_length_ / 2)));
+      }
+
+    private:
+      double side_length_;
+  };
+
+  class Square : public polygon_base::RegularPolygon
+  {
+    public:
+      Square(){}
+
+      void initialize(double side_length)
+      {
+        side_length_ = side_length;
+      }
+
+      double area()
+      {
+        return side_length_ * side_length_;
+      }
+
+    private:
+      double side_length_;
+
+  };
+};
+#endif
+```
+
+该文件中创建了正方形与三角形两个衍生类继承基类。
+
+注册插件，在 src 目录下新建 `polygon_plugins.cpp` 文件：
+
+```c++
+//pluginlib 宏，可以注册插件类
+#include <pluginlib/class_list_macros.h>
+#include <xxx/polygon_base.h>
+#include <xxx/polygon_plugins.h>
+
+//参数1:衍生类 参数2:基类
+PLUGINLIB_EXPORT_CLASS(polygon_plugins::Triangle, polygon_base::RegularPolygon)
+PLUGINLIB_EXPORT_CLASS(polygon_plugins::Square, polygon_base::RegularPolygon)
+```
+
+该文件会将两个衍生类注册为插件。
+
+构建插件链接库，在 `CMakeLists.txt` 文件中设置以下内容：
+
+```cmake
+include_directories(include)
+add_library(polygon_plugins src/polygon_plugins.cpp)
+```
+
+调用 `catkin_make` 编译，编译完成后，在工作空间 `/devel/lib` 目录下，会生成相关的 `.so` 文件。
+
+使插件可用于 ROS 工具链，配置 xml ，功能包下新建文件 `polygon_plugins.xml` ：
+
+```xml
+<!-- 插件库的相对路径 -->
+<library path="lib/libpolygon_plugins">
+  <!-- type="插件类" base_class_type="基类" -->
+  <class type="polygon_plugins::Triangle" base_class_type="polygon_base::RegularPolygon">
+    <!-- 描述信息 -->
+    <description>This is a triangle plugin.</description>
+  </class>
+  <class type="polygon_plugins::Square" base_class_type="polygon_base::RegularPolygon">
+    <description>This is a square plugin.</description>
+  </class>
+</library>
+```
+
+导出插件，`package.xml` 文件中设置内容如下：
+
+```xml
+<export>
+  <xxx plugin="${prefix}/polygon_plugins.xml" />
+</export>
+```
+
+标签 `<xxx />` 的名称应与基类所属的功能包名称一致，plugin 属性值为上一步中创建的 xml 文件。
+
+编译后，可以调用 `rospack plugins --attrib=plugin xxx `命令查看配置是否正常，如无异常，会返回 `.xml` 文件的完整路径，这意味着插件已经正确的集成到了 ROS 工具链。
+
+使用插件，`src` 下新建 c++ 文件：`polygon_loader.cpp` ：
+
+```c++
+//类加载器相关的头文件
+#include <pluginlib/class_loader.h>
+#include <xxx/polygon_base.h>
+
+int main(int argc, char** argv)
+{
+  //类加载器 -- 参数1:基类功能包名称 参数2:基类全限定名称
+  pluginlib::ClassLoader<polygon_base::RegularPolygon> poly_loader("xxx", "polygon_base::RegularPolygon");
+
+  try
+  {
+    //创建插件类实例 -- 参数:插件类全限定名称
+    boost::shared_ptr<polygon_base::RegularPolygon> triangle = poly_loader.createInstance("polygon_plugins::Triangle");
+    triangle->initialize(10.0);
+
+    boost::shared_ptr<polygon_base::RegularPolygon> square = poly_loader.createInstance("polygon_plugins::Square");
+    square->initialize(10.0);
+
+    ROS_INFO("Triangle area: %.2f", triangle->area());
+    ROS_INFO("Square area: %.2f", square->area());
+  }
+  catch(pluginlib::PluginlibException& ex)
+  {
+    ROS_ERROR("The plugin failed to load for some reason. Error: %s", ex.what());
+  }
+
+  return 0;
+}
+```
+
+执行，修改 `CMakeLists.txt` 文件：
+
+```xml
+add_executable(polygon_loader src/polygon_loader.cpp)
+target_link_libraries(polygon_loader ${catkin_LIBRARIES})
+```
+
+编译然后执行 polygon_loader 即可。
+
+### nodelet
+
+ROS 是基于 node（节点）的系统，一个 node 独占一个进程，当不同节点进行大量的数据交互时（比如传输图片，点云），可能出现延时与阻塞的情况。
+
+nodelet 软件包提供了在同一进程中运行多个算法（节点）的功能，不同算法之间通过传递指针来代替数据本身的传输，从而实现快速的数据拷贝。
+
+nodelet 基于插件：
+
+- 不同算法被封装进插件类，可以像单独的节点一样运行。
+- 提供插件类实现的基类：`Nodelet` 。
+- 提供了加载插件类的类加载器：`NodeletLoader` 。
+
+nodelet 使用 manager 管理集中于一个进程的节点。
+
+以下以编写 nodelet 插件类，可以订阅输入数据，设置参数，发布订阅数据与参数相加的结果为例。
+
+包依赖：`roscpp nodelet`
+
+创建插件类并注册插件：
+
+```c++
+#include "nodelet/nodelet.h"
+#include "pluginlib/class_list_macros.h"
+#include "ros/ros.h"
+#include "std_msgs/Float64.h"
+
+namespace nodelet_demo_ns {
+class MyPlus: public nodelet::Nodelet {
+    public:
+    MyPlus(){
+        value = 0.0;
+    }
+    void onInit(){
+        //获取 NodeHandle
+        ros::NodeHandle& nh = getPrivateNodeHandle();
+        //从参数服务器获取参数
+        nh.getParam("value",value);
+        //创建发布与订阅对象
+        pub = nh.advertise<std_msgs::Float64>("out",100);
+        sub = nh.subscribe<std_msgs::Float64>("in",100,&MyPlus::doCb,this);
+
+    }
+    //回调函数
+    void doCb(const std_msgs::Float64::ConstPtr& p){
+        double num = p->data;
+        //数据处理
+        double result = num + value;
+        std_msgs::Float64 r;
+        r.data = result;
+        //发布
+        pub.publish(r);
+    }
+    private:
+    ros::Publisher pub;
+    ros::Subscriber sub;
+    double value;
+
+};
+}
+PLUGINLIB_EXPORT_CLASS(nodelet_demo_ns::MyPlus,nodelet::Nodelet)
+```
+
+构建插件链接库，配置 `CMakeLists.txt` ：
+
+```cmake
+...
+add_library(mynodeletlib
+  src/myplus.cpp
+)
+...
+target_link_libraries(mynodeletlib
+  ${catkin_LIBRARIES}
+)
+```
+
+编译后，会在 `工作空间/devel/lib/` 生成文件：`libmynodeletlib.so` 。
+
+使插件可用于 ROS 工具链，新建 xml 文件，名称自定义（比如 `my_plus.xml`）：
+
+```xml
+<library path="lib/libmynodeletlib">
+    <class name="demo04_nodelet/MyPlus" type="nodelet_demo_ns::MyPlus" base_class_type="nodelet::Nodelet" >
+        <description>hello</description>
+    </class>
+</library>
+```
+
+导出插件:
+
+```xml
+<export>
+    <!-- Other tools can request additional information be placed here -->
+    <nodelet plugin="${prefix}/my_plus.xml" />
+</export>
+```
+
+执行使用，可以通过 launch 文件执行 nodelet ：
+
+```xml
+<launch>
+    <node pkg="nodelet" type="nodelet" name="my" args="manager" output="screen" />
+    <node pkg="nodelet" type="nodelet" name="p1" args="load demo04_nodelet/MyPlus my" output="screen">
+        <param name="value" value="100" />
+       	<!-- 话题重映射 -->
+        <remap from="/p1/out" to="con" />
+    </node>
+    <node pkg="nodelet" type="nodelet" name="p2" args="load demo04_nodelet/MyPlus my" output="screen">
+        <param name="value" value="-50" />
+       	<!-- 话题重映射 -->
+        <remap from="/p2/in" to="con" />
+    </node>
+</launch>
+```
 
 ## 机器人系统仿真
 
@@ -1810,7 +2233,7 @@ Gazebo 实现了 ros_control 标准，可直接调用相关接口。
 
 **gmapping 功能包**可以根据移动机器人**里程计数据**和**激光雷达数据**来绘制二维的栅格地图。
 
-核心结点为 slam_gmapping 。
+核心结点为 slam_gmapping ，用于实时构建地图，可保存为静态地图。
 
 #### slam_gmapping
 
@@ -1889,7 +2312,9 @@ Gazebo 实现了 ros_control 标准，可直接调用相关接口。
 
 ### 地图服务
 
-**map_server 功能包**中主要有 map_saver 和 map_server 两个节点。
+**map_server 功能包**中主要有 map_saver 和 map_server 两个节点，用于静态地图（在开始就设置好整个环境）。
+
+也可以不使用 map server 发布 static map ，直接使用 move_base 。
 
 #### map_saver
 
@@ -1914,7 +2339,7 @@ map_saver 用于保存地图：
 
 - `.pgm`
 
-	本质是图片，可直接以图片查看。
+	本质是图片，可直接以图片查看。（也支持 png 等格式）
 
 - `.yaml`
 
@@ -1980,8 +2405,6 @@ map_server 用于读取地图并以服务形式提供地图：
 - 使用里程计定位时，一般将 odom 作为父级坐标系。
 - 使用传感器定位时，一般将 map 作为父级坐标系。
 - 结合使用时，为了让机器人底盘（base）只有一个父级，一般设为 `map -> odom ->（base_link 或 base_footprint）` 。
-
-SLAM 中的定位用于构建全局地图，AMCL 中的定位用于当前机器人的位置。
 
 **amcl 功能包**是用于2D移动机器人的概率定位系统（被集成在 navigation 包中），可以结合里程计提高定位准确度。
 
@@ -2053,33 +2476,37 @@ SLAM 中的定位用于构建全局地图，AMCL 中的定位用于当前机器�
 
 启动 gazabo 用于显示地图，用 launch 集成 map_server 节点、amcl 节点、rviz 节点，再移动机器人即可看到估计点随着运动变密集。
 
-不需要即时定位时不使用 amcl 也可以进行路径规划和运动。
-
 ### 路径规划
 
-**move_base** 功能包（属于 navigation 包）提供了基于动作（action）的（全局和局部）路径规划实现，可控制机器人移动到目标点，并在移动过程中不断反馈状态数据。
+**move_base** 功能包（属于 navigation 包）提供了：
+
+- 基于动作（action）的（全局和局部）路径规划实现，可控制机器人移动到目标点，并在移动过程中不断反馈状态数据。
+- global_costmap 和 local_costmap 。
+- 规划算法。
 
 核心节点为 move_base 。
 
 #### 代价地图
 
-保存的静态地图无法直接应用于导航，需要集成实时的障碍物数据（包括障碍物出现，消失，移动等），添加膨胀区等。
+静态地图无法直接应用于导航，只能提供一些环境信息。
+
+运行还需要代价地图（动态地图），其包含实时的障碍物（包括障碍物出现，消失，移动等），膨胀区等的数据。
 
 代价地图有两张：
 
 - global_costmap（全局代价地图）
 
-	用于全局路径规划。
+	用于全局路径规划。（坐标系一般静态地图使用 map ，其余用 odom）
 
 - local_costmap（局部代价地图）
 
-	用于局部路径规划。
+	用于局部路径规划。（坐标系使用 odom）
 
 包含多层，全局和局部路径规划的各层参数可以不一致：
 
 - Static Map Layer
 
-	静态地图层，SLAM 构建的静态地图。
+	静态地图层，SLAM 构建的静态地图，可不使用。
 
 - Obstacle Map Layer
 
@@ -2177,7 +2604,7 @@ SLAM 中的定位用于构建全局地图，AMCL 中的定位用于当前机器�
 
 #### 使用
 
-启动 move_base 的文件，需要调用配置文件（详见案例）：
+启动 move_base 的文件，需要调用配置文件（详见官网文档）：
 
 ```xml
 <launch>
@@ -2230,6 +2657,8 @@ SLAM 中的定位用于构建全局地图，AMCL 中的定位用于当前机器�
 2. 启动导航 launch 文件。
 3. 启动 Rviz，添加功能组件，可将选择保存为配置。
 
+没有 gmapping 和 acml 也可以使用 move_base 进行移动。
+
 ### 深度图像转激光数据
 
 ROS 中的 depthimage_to_laserscan 功能包可以将深度图像信息转换为激光雷达信息。
@@ -2276,6 +2705,3 @@ ROS 中主要有以下路径规划算法：
 - DWA（Dynamic Window Approach）算法，`dwa_local_planner` 包。
 - TEB（Timed Elastic Band）算法，`teb_local_planner` 包。
 
-## 仿真与导航案例
-
-上述仿真与导航所需的代码均在内，详见 [UGV_navigation_example_package](https://github.com/HakureiWeideng/UGV_navigation_example_package) 。

@@ -1,6 +1,4 @@
-# Stixel World
-
-应用于交通场景。
+# Stixel
 
 - Stixel
 

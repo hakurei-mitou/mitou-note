@@ -18,17 +18,197 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-import math
-import os
+import json
 
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 ```
 
-- 包版本（Package Version）
+- 配置（Configuration）
+
+  使用 `Config` 类，保存配置参数和超参数。
+
+  - 使用字典则无代码提示。
+  - 需要频繁修改的项靠下放。
+  - 配置只包含基本不变的参数。
+  - 使用 `runing_test`，要全程考虑为其特化编码。
 
 ```python
+class Config:   # 配置类  
+    # data path
+    data_path = './data'
+
+    # local or cloud
+    if 'kaggle/working' in os.getcwd(): 
+        at_cloud = True
+        # cloud items
+    else:
+        at_cloud = False
+        # local items
+
+    # environment
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'   # 类变量
+    seed = 923
+    model_save_path = './model.ckpt'   # state of model parameters
+    # more data: checkpoint_path = './checkpoint.pth'
+
+    # NN structure
+
+    # ...
+
+    # training
+    n_example = 20000  # all examples
+    n_epoch = 1000
+    early_stop = 200
+    batch_size = 64
+
+    # runing test
+    runing_test = True   # need be modified by hand
+    if runing_test:
+        n_example = 20
+        n_epoch = 10
+
+    def __init__(self):    # 必要时可扩展
+        pass
+
+print(f"Using {Config.device} device")
+```
+
+- 随机数种子（Random Seed）
+
+```python
+def random_seed(seed): 
+    torch.backends.cudnn.deterministic = True   # 卷积都使用默认的卷积算法
+    torch.backends.cudnn.benchmark = False   # 关闭系统卷积算法选择优化（带随机性）
+    np.random.seed(seed)   # 为随机算法设置种子。
+    torch.manual_seed(seed)   # 为 CPU 设置种子。
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)   # 为所有 GPU 设置种子。
+```
+
+- 数据处理（Data Processing）
+
+  各种处理函数，便于四处调用。
+
+- 数据集成（Data Integration）
+
+  建立 Dataset 类。
+
+- 模型结构（Model Structure）
+
+- 训练循环（Training Loop）
+
+- 测试，预测，推断（Test，Prediction，Inference）
+
+- 损失曲线（Loss Curve）
+
+- 时空（Time and Space）
+
+	对时间和空间情况进行估计与分析
+
+- 表现分析（Performance Analysis）
+
+	分析模型的表现。
+
+## 项目风格
+
+### 工程风格
+
+使用 main 函数统筹各部分函数：
+
+- 便于清晰描述项目流程，也便于扩展到多参数对比训练，多批次数据训练等。
+- 简明，模块化，易扩展，但不便于反复调试，每次调试都要重复计算。
+- 输出都集中到 main 函数底部 ，查看需要来回跳转。
+
+```python
+def main():
+	same_seed(Config.seed)
+	...
+	...
+
+# begin    
+main()   # 扩展时能被当作一般函数调用
+
+# 扩展
+# def project()
+config1
+main(xxx)
+config2
+main(xxx)
+```
+
+### Jupyter Notebook 风格
+
+不使用 main 函数统筹函数，而是直接使用 main Cell 统筹流程：
+
+- 不必每次调试都从头开始运行，可以反复利用已经计算出的结果和输出测试信息。
+- 变量命名要准确，Notebook 风格会存在大量全局变量。
+- 分散输出，便于描述思路。
+
+### 混合风格
+
+- 使用基本结构。
+- 工程风格为主，但不使用 main 函数统筹项目。
+- 将 main 函数应当包含的内容按照 Notebook 风格分散开，为单元编写整体函数，于单元内调用。（相当于将全局当作一个 main 函数）便于单元测试，分散输出和利用已有计算信息。
+
+```python 
+# 一般 begin 位置，相当于把全局当作 main 。
+
+# Cell 1
+
+def operation1():
+    pass
+
+operation1()   # 调用
+
+# Cell 2
+
+...
+operation2   # 不是函数，是 notebook 风格的全局域的操作。
+...
+
+# Cell 3
+
+def other_functions():
+    pass
+
+def operation3():
+    other_functions()
+
+operation3()   # 调用，对于以后不必每次都重新运行的操作，适当新开一个 Cell ，比如建立数据集。
+...
+```
+
+## 运行测试
+
+云端和本地都要运行测试，因为云端可能有 GPU 等环境问题：
+
+- 本地（Local）
+- 云端（Cloud）
+
+程序流程测试：
+
+- 小数据量，小 epoch 。
+
+  项目构建全程使用，测试程序问题。
+
+- 全数据量，小 epoch 。
+
+  训练代码构建完毕后使用，主要测试全数据下是否有数据加载错误。
+
+  - 数据处理在小数据量已经测试过，可适当删减，以加快训练速度。
+  - 大 epoch 不必测试，因为小 epoch 已经足够。
+
+## 包版本
+
+包版本的分析不是必需的，在需要解决包问题时再做此工作。
+
+```python
+'''origin:
+输出...
+'''
+
 def package_version():
 
     ! python -V
@@ -58,207 +238,25 @@ def package_version():
 package_version()
 ```
 
-- 配置（Configuration）
+## 时空
 
-  使用 `Config` 类，设置类变量保存配置参数和超参数。
-
-  - 使用字典则无代码提示。
-  - 需要频繁修改的项靠下放。
-  - 配置只包含基本不变的参数。
-
-```python
-class Config:   # 配置类
-    
-    # data path
-    data_path = './data'
-   
-    	# local or cloud
-    if 'kaggle/working' in os.getcwd(): 
-        at_cloud = True
-        # cloud items
-    else:
-        at_cloud = False
-        # local items
-        
-    # environment
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'   # 类变量
-    seed = 923
-    model_save_path = './model.ckpt'
-        
-    # NN structure
-    
-    # ...
-    
-    # training
-    n_example = math.inf
-    n_epoch = 1000
-    early_stop_epoch = 200
-    batch_size = 64
-        
-	# runing test
-    runing_test = True   # need be modified by hand
-    if runing_test:
-	    n_example = 20
-    	n_epoch = 10
-    
-    # 必要时可扩展
-	def __init__(self):   
-        pass
-
-print(f"Using {Config.device} device")
-
-# 扩展
-class ConfigTest:
-    pass
-```
-
-- 空间估计（Space Estimation）
-- 随机数种子（Random Seed）
-
-```python
-def random_seed(seed): 
-    torch.backends.cudnn.deterministic = True   # 卷积都使用默认的卷积算法
-    torch.backends.cudnn.benchmark = False   # 关闭系统卷积算法选择优化（带随机性）
-    np.random.seed(seed)   # 为随机算法设置种子。
-    torch.manual_seed(seed)   # 为 CPU 设置种子。
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)   # 为所有 GPU 设置种子。
-```
-
-- 数据处理（Data Processing）
-
-	各种处理函数，便于四处调用。
-
-- 数据集成（Data Integration）
-
-	构建 Dataset，Dataloader 。
-
-- 模型结构（Model Structure）
-
-- 训练流程（Training Loop）
-
-- 损失曲线（Loss Curve）
-
-- 测试、预测（Testing，Prediction）
-
-- 时间估计（Time Estimation）
-
-- 时空分析（Time and Space Analysis）
-
-- 表现分析（Performance Analysis）
-
-  分析模型的表现。
-
-## 项目风格
-
-### 工程风格
-
-使用 main 函数统筹各部分函数：
-
-- 便于清晰描述项目流程，也便于扩展到多参数对比训练，多批次数据训练等。
-- 简明，模块化，易扩展，但不便于反复调试，每次调试都要重复计算。
-- 输出都集中到 main 函数底部。
-
-```python
-def main():
-	same_seed(Config.seed)
-	...
-	...
-
-# begin    
-main()   # 扩展时能被当作一般函数调用
-
-# 扩展
-# def project()
-Config.xxx
-main(xxx)
-Config.xxx
-main(xxx)
-```
-
-### Jupyter Notebook 风格
-
-不使用 main 函数统筹函数，而是直接使用 Jupyter Cell 统筹流程：
-
-- 不必每次调试都从头开始运行，可以反复利用已经计算出的结果和输出测试信息。
-- 变量命名要准确，Notebook 风格会存在大量全局变量。
-- 分散输出，便于描述思路。
-
-整体结构要按照基本结构布置，以便于修改为函数或类，从而扩展到工程风格，应对复杂情况。
-
-### 混合风格
-
-- 使用基本结构。
-- 工程风格为主，但不使用 main 函数统筹项目。
-- 将 main 函数应当包含的内容按照 Notebook 风格分散开，为单元编写整体函数，于单元内调用。（相当于将全局当作一个 main 函数）
-	- 便于单元测试，分散输出和利用已有计算信息。
-	- 便于快速将各单元函数和操作集中到 main 函数中，扩展到工程风格。
-
-```python 
-# 一般 begin 位置，相当于把全局当作 main 。
-
-# Cell 1
-
-def operation1():
-    pass
-
-operation1()   # 调用
-
-# Cell 2
-
-...
-operation2   # 不是函数，是 notebook 风格的全局域的操作。
-...
-
-# Cell 3
-
-def other_functions():
-    pass
-
-def operation3():
-    other_functions()
-
-operation3()   # 调用，对于以后不必每次都重新运行的操作，适当新开一个 Cell ，比如建立数据集。
-
-...
-
-# 扩展时：
-def main():   # 或者不使用 main，而使用其它的名字，继续扩展。
-    operation1()
-    operation2
-    operation3()
-    
-main()   # 扩展时 begin 位置。
-```
-
-## 运行测试
-
-云端和本地都要运行测试，因为云端可能有 GPU 等环境问题：
-
-- 本地（Local）
-- 云端（Cloud）
-
-程序流程测试：
-
-- 小数据量，小 epoch 。
-
-  项目构建全程使用，测试程序问题。
-
-- 全数据量，小 epoch 。
-
-  项目构建完毕后使用，主要测试全数据下是否有数据加载错误。
-
-  - 数据处理在小数据量已经测试过，可适当删减，以加快训练速度。
-  - 大 epoch 不必测试，因为小 epoch 已经足够。
-
-- 多步输入数据训练时，要测试最后一步结尾不足一步跨度的数据。
-
-## 时空估计与分析
+设置收集信息的类及函数，在需要的地方使用及打印。
 
 估计与分析的思想是一致的，只是主要目的不同：
 
-- 预估可以给项目决策提供参考。
-- 分析可比较准确地展示出项目实际需要的资源。
+- 估计可以给项目决策和实际训练提供参考，目的是预估训练消耗。
+- 分析可比较准确地展示出项目使用了多少资源，目的是展示训练消耗。
+
+没有必要每次都估计和分析，依实际需求而定。
+
+估计和分析可以在项目编码完了再进行修改添加，没有必要一开始就考虑为其特殊化。
+
+估计相当困难：
+
+- 用少量 example 估计时，时间与 example 往往不是线性关系。
+- 用少量 epoch 估计时，时间往往随着计算资源（GPU）的分配等导致 epoch 的训练时间不同，而估计偏差大。
+
+建议使用 early_stop 来尽早停止训练，并保存模型和优化器的所有参数。
 
 ### 基本概念
 
@@ -274,15 +272,11 @@ main()   # 扩展时 begin 位置。
 
 	十亿次浮点运算，$1 GFLOPs = 10^9 FLOP$ 。
 	
-- MACs（floating point operations）（s 表复数）
+- MACs（Multiply–Accumulate Operations）
 
   有时也用 MAdd 表示，指乘加（$a + b \times c$）运算数，包含一个乘法，一个加法操作。通常 MACs 是 FLOPs 的两倍。
 
-### 时空估计
-
-#### 空间
-
-预估空间消耗，不断调整实现策略。（编码前依据策略估计）
+### 空间
 
 - 外存（External Memory，Disk）
 
@@ -300,35 +294,16 @@ main()   # 扩展时 begin 位置。
 
 	参数量，大小。
 
-#### 时间
-
-时间在直接运行分析，这样比较简便。（编码后运行代码估计）
-
-由少量数据的情况估计全部数据的情况。
+### 时间
 
 - 数据处理
-- epoch
-
-### 时空分析
-
-#### 空间
-
-- 参数量
-- 内存，显存占用。
-
-#### 时间
-
-可用少量 example，epoch 等的运行状况推导预估总的时间。
-
-- CPU，GPU 占用。
-
+- CPU，GPU 占用
 - FLOPs
+- 数据处理时间
+- 训练时间
+- 测试时间
 
-- 平均数据处理时间
-- 平均样本训练时间。
-- 平均样本测试时间，
-
-### 分析工具
+### 工具
 
 #### 运行时间
 
@@ -338,7 +313,7 @@ main()   # 扩展时 begin 位置。
 
 - `time.perf_counter()`
 
-	性能计数器的值，是 CPU 时间，包括睡眠时间，精度高
+	性能计数器的值，是 CPU 时间，包括睡眠时间，精度高。
 
 - `time.process_time()`
 
