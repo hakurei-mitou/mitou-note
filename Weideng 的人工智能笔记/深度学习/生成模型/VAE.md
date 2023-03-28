@@ -1,6 +1,6 @@
 # VAE
 
-（变分编码器，Variational Auto-Encoder）
+（变分自动编码器，Variational Auto-Encoder）
 
 [Auto-Encoding Variational Bayes 2013](https://arxiv.org/pdf/1312.6114.pdf)
 
@@ -26,6 +26,10 @@
 	- 模型编码的特征空间中的点不能描述图像的过渡中间态（不一定连续，分布描述不佳），可能生成不理想的效果。
 
 ![image-20230309104001685](images/VAE/image-20230309104001685.png)
+
+- 编码概念扩展
+
+	编码可以表示为多种事物，比如一串数字，文字串等，从而完成编码到输出的映射的构建。
 
 ## VAE 结构
 

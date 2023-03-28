@@ -45,15 +45,18 @@ Self-attention 层任意安排次数和位置：
 
 ### attention
 
+#### 关联度
+
 要考虑到整个 Sequence 的所有向量，可以计算输入向量之间的关联度，用一个数字 $\alpha$ 表示。
 
 常见方法有 Dot-product（点积）（最常用）和 Additive 。
 
 点积是内积（Inner-product）在欧几里得空间的特殊形式，一般当作内积即可。
 
-#### Dot-product
+- Dot-product
 
-输入向量分别与矩阵相乘，然后将得到的向量做点积。
+	输入向量分别与矩阵相乘，然后将得到的向量做点积。
+
 $$
 \alpha = \boldsymbol q \cdot \boldsymbol k \ , \ 
 \begin{cases}
@@ -63,7 +66,9 @@ $$
 $$
 ![image-20220726092550209](images/Transformer/image-20220726092550209.png)
 
-#### Additive
+dot-product 比 additive 空间更少，计算更快，因为可以有矩阵乘法的优化。
+
+- Additive
 
 ![image-20220726092630784](images/Transformer/image-20220726092630784.png)
 
@@ -91,6 +96,8 @@ query、key 和 value 的概念来自推荐系统，给定一个 query ，根据
 
 在这个例子中，query、key 和 value 的属性在不同空间，但其具有一定的潜在关系，也就是说可以通过某种变换将它们都转换到一个相近的空间中，这就是学习转换矩阵 $\boldsymbol W$ 的意义。
 
+转化矩阵只有线性转换能力，转换后的输入在关联计算后，还需要 FC 进行一定的非线性拟合。（FC 的参数也需要学习）
+
 所谓 self-attention 即是指 key，value，query 都是由向量自己（转化后）作为的。
 
 #### 矩阵表示
@@ -115,25 +122,11 @@ attention score :
 
 其中，Self-attention 层需要学习的权重参数为 $\boldsymbol W_q,\boldsymbol W_k,\boldsymbol W_v$ ，维度都是 `(word_vector_len, word_vector_len)` 。
 
-### 多关联性
+![image-20230322111808320](images/Transformer/image-20230322111808320.png)
 
-（多头自注意力，Multi-head Self-attention）
+其中，$d_k$ 为 key 的维度，当 $d_k$ 特别大时，dot-product 也会变得很大，这会导致通过 softmax 后产生的梯度非常小，所以使用 $\frac 1 {\sqrt {d_k}}$ 进行 scale 。
 
-有效的关联性可能不止一种，需要计算多种关联性，即使用多种 $\boldsymbol q^t_i$ 与多种 $\boldsymbol k^t_i$ 计算关联性，然后合并各个头的信息得到最终输出。
-
-每个种类的计算方式与单种关联性一致即可。
-
-### 位置编码
-
-（Positional Encoding）
-
-向量转化只是衡量向量间的关联性，并没有利用向量的输入位置（次序）信息。
-
-若要考虑，只需为每个位置都设置一个代表位置信息的唯一的向量 $\boldsymbol e_i$ ，然后在一开始加入 $\boldsymbol a_i$ 即可：
-
-![image-20220726195405429](images/Transformer/image-20220726195405429.png)
-
-$\boldsymbol e_i$ 有多种设置方式，也可由机器学得。
+具体的，假设两个 $d_k$ 维的向量的每个分量是相互独立的服从正态分布的随机变量，那么它们的均值为 $0$ ，方差为 $1$，从而点乘后均值为 $0$ ，方差为 $d_k$ ，对每一个分量除以 $d_k$ 可以让方差变为 $1$ 。
 
 ## Encoder
 
@@ -143,23 +136,48 @@ $\boldsymbol e_i$ 有多种设置方式，也可由机器学得。
 
 ### Positional Encoding
 
-给输入的序列附加上**位置信息（Positional Information）**。
+（位置编码）
+
+向量转化只是衡量向量间的关联性，并没有利用向量的输入位置（次序）信息，可以给输入的序列附加上位置信息。
+
+为每个位置都设置一个代表位置信息的唯一的向量 $\boldsymbol e_i$ ，然后在一开始加入 $\boldsymbol a_i$ 即可：
+
+![image-20220726195405429](images/Transformer/image-20220726195405429.png)
+
+$\boldsymbol e_i$ 有多种设置方式，也可由机器学得。
 
 ### Multi-Head Attention
 
-多头注意力机制。
+（多头注意力）
 
-### Add
+有效的关联性可能不止一种，需要计算多种关联性，即使用多种 $\boldsymbol q^t_i$ 与多种 $\boldsymbol k^t_i$ 计算关联性，然后 concat 各个头的信息得到最终输出。
 
-加法，线条连接表示**残差网络（Residual Network）**连接。
+每个种类的计算方式与单种关联性一致即可。
 
-### Norm
+![image-20230322194933024](images/Transformer/image-20230322194933024.png)
 
-标准化，不是 batch normalization ，而是 **layer normalization** ，对该层的经残差连接后的输出进行标准化。
+相当于使用多个过滤器（卷积核）。
+
+### Add & Norm
+
+线条表示**残差网络（Residual Network）**连接。
+
+Transformer 使用 **layer normalization** ，对该层的经残差连接后的输出进行标准化：
+$$
+\rm LayerNorm(x + \rm Sublayer(x))
+$$
 
 ### FC
 
-是 position-wise 的 FC ，即 sequence 中的每个词向量都会有一个 FC 。
+包含两个线性变换和一个 ReLU 的全连接网络（FFN） ，增强模型拟合能力。
+
+![image-20230322185205777](images/Transformer/image-20230322185205777.png)
+
+其原论文维度为 $(d_{model} = 512, d_{ff} = 2048, d_{model} = 512)$）：
+
+是 position-wise 的 FC ，即每个词向量计算后对应的位置都有一个 FC （$d_{model}$ 即是一个词向量维度）。
+
+也可使用两个 1x1 的卷积和一个 ReLU 描述该运算。
 
 ## Decoder
 

@@ -303,7 +303,7 @@ package_version()
 - 训练时间
 - 测试时间
 
-### 工具
+### 分析工具
 
 #### 运行时间
 
@@ -357,15 +357,11 @@ from torchsummary import summary
 summary(model, input_shape)
 ```
 
-## 时空控制
+### 优化工具
 
-### 空间控制
+#### 回收变量。
 
-- 进行空间分析。
-
-- 及时回收大空间变量。
-
-  可使用 gc 模块。
+可使用 gc 模块。
 
 ```python
 import gc
@@ -377,31 +373,90 @@ del variable1, variable2   # 引用计数
 gc.collect()
 ```
 
-- 全体数据分步读取，输入项目。（分步内仍能保证数据有足够的随机性时使用）
+#### gradient accumulation
 
-  - 每个分步跑完一遍 epoch 后，模型遇到的是全新的数据，训练不稳定。
-  - 形成 batch 时只能每一步内 shuffle ，不能全局 shuffle 。
-  - 此时建议缩减 epoch ，增大全体数据的循环次数。（数据处理会增加）
-  - 训练流程变复杂，需要注意 epoch 数量的处理。
-- 用到时再读取和处理。（数据处理简单，且 epoch 较少时采用）
-
-  - 多个 epoch 会反复 I/O 和处理数据，反复 I/O 和复杂的处理过程，会耗费大量的时间。
-  - I/O 是非常耗时的，可能在 epoch 中反复数据处理消耗的时间还没有一次 I/O 多。
-- 将处理后的数据存入文件并构造索引，用到时再读取。（数据处理复杂，样本较大，epoch 较多时采用）
-  - 利用外存空间，为了提升 I/O 效率，需要合理设置文件的大小和构造索引。
-  - 当每次取数据只读取存储的文件的一小部分时，可能 I/O 次数会非常多。
+使用多个小的 batch 达到大 batch size 的结果，在积累几个 batch 的梯度后再用这些梯度更新网络。
 
 ```python
-# 张量存储与读取
-torch.save(obj, 'xxx.pt')
-torch.load('xxx.pt')
+# batch accumulation parameter
+accum_iter = 4  
+
+# loop through enumaretad batches
+for dataloader:
+    
+    # passes and weights update
+    with torch.set_grad_enabled(True):
+        
+        # forward pass 
+        preds = model(inputs)
+        loss  = criterion(preds, labels)
+
+        # normalize loss to account for batch accumulation
+        loss = loss / accum_iter 
+
+        # backward pass
+        loss.backward()
+
+        # weights update
+        # 隔几个 batch 更新一次梯度。
+        # 在最后一个 batch 要特殊处理。
+        if ((batch_idx + 1) % accum_iter == 0) or (batch_idx + 1 == len(data_loader)):
+            optimizer.step()
+            optimizer.zero_grad()
 ```
 
-- 调整数据类型。
+#### Automatic Mixed Precision
 
-### 时间控制
+（自动混合精度，AMP）
 
+- 减少内存占用。
+- 加速。
 
+神经网络一般使用单精度（single precision） 32-bit floating point (FP32) 进行计算，混合精度训练在尽可能减少精度损失的情况下利用半精度（half-precision）浮点数（FP16）加速训练，使用 F16 存储权重和梯度。
+
+pytorch 在 amp 模块中混合了 torch.FloatTensor 和 torch.HalfTensor 两种类型，
+
+FP16 存储小，计算快，但数值范围小，容易 overflow 和 underflow，也容易有舍入误差（一些过小的梯度达不到 FP16 的最低分辨率，导致丢失），因此要混合两种精度使用。
+
+在 BP 传递梯度时:
+
+1. 对梯度 scale ，放大 loss 的值防止 underflow 。
+2. 检查梯度是否有 infs 或 NaNs（overflow）
+	- 没有则正常更新。
+	- 有则跳过该次梯度更新，`scaler.update()` 缩小 scale 的放缩倍数（乘上 `backoff_factor`）。
+	- 当连续多次（`growth_interval` 指定）没有出现 overflow ，`scaler.update()` 会放大 scale 的放缩倍数（乘上 `growth_factor`）。
+3. 将梯度 unscale 回去更新权重。
+
+```python
+# Creates model and optimizer in default precision
+model = Net().cuda()
+optimizer = optim.SGD(model.parameters(), ...)
+
+# Creates a GradScaler once at the beginning of training.
+scaler = GradScaler()
+
+for epoch in epochs:
+    for input, target in data:
+        optimizer.zero_grad()
+
+        # Runs the forward pass with autocasting.
+        with autocast(device_type='cuda', dtype=torch.float16):
+            output = model(input)
+            loss = loss_fn(output, target)
+
+        # Scales loss.  Calls backward() on scaled loss to create scaled gradients.
+        # Backward passes under autocast are not recommended.
+        # Backward ops run in the same dtype autocast chose for corresponding forward ops.
+        scaler.scale(loss).backward()
+
+        # scaler.step() first unscales the gradients of the optimizer's assigned params.
+        # If these gradients do not contain infs or NaNs, optimizer.step() is then called,
+        # otherwise, optimizer.step() is skipped.
+        scaler.step(optimizer)
+
+        # Updates the scale for next iteration.
+        scaler.update()
+```
 
 ## Kaggle 使用
 
@@ -422,28 +477,3 @@ torch.load('xxx.pt')
   - 在训练完后可以在 Kaggle Jupyter Notebook 界面点击查看当次训练的存储和计算资源的占用情况。
 - 注意
 	- persistence 选项只针对 interactive session ，对 save version 不起作用。
-
-
-## SkLearn 算法选择图
-
-![](images/AI 技巧及注意事项/SkLearn 算法选择图.png)
-
-![](images/AI 技巧及注意事项/SkLearn 算法选择图（中文）.png)
-
-## 训练技巧汇总
-
-？？？
-
-
-
-
-
-## 编码杂项
-
-- PyTorch 中方法名末尾如果带下划线，表示会修改变量本身（in-place）：`.abs_(), .abs()  ` 。
-- `assert` 可用于调试。
-- Anaconda 不能直接安装的第三方包可以进入 anaconda prompt 中用 pip 安装。
-
-## 注意点杂项
-
-- 图像任务比单纯的数据任务更需要泛化性。
