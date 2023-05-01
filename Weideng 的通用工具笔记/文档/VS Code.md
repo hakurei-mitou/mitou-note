@@ -295,3 +295,77 @@ SQLTools
 **新建一个build文件夹（可在上述文件中指定），用于存放可执行文件**
 
 **要运行代码，必须要配置插件，并且新建文件要注意后缀名**
+
+## python 调试
+
+更全面的设置见[官方文档参考](https://code.visualstudio.com/docs/python/debugging#_debugging-by-attaching-over-a-network-connection)
+
+### 本地程序
+
+若要调试命令行运行的脚本，可以在脚本前加上延时语句（比如输入），执行命令后点击 Run and Debug ，选择 Debugging using attach process， 依据弹出的进程列表， attach 那个 python 进程。
+
+![image-20230414141207547](images/VS Code/image-20230414141207547.png)
+
+### 远端程序
+
+#### 对文件方式
+
+直接调试文件。
+
+点击 run and debug （python：file） 即可。
+
+#### attach 方式
+
+在本地和远端都要安装 debugpy ：
+
+```shell
+python -m pip install --upgrade debugpy
+```
+
+VS Code 配置文件：
+
+```json
+{
+  "name": "Python: Attach",
+  "type": "python",
+  "request": "attach",
+  "port": 5678,
+  "host": "localhost",
+  "pathMappings": [
+    {
+      "localRoot": "${workspaceFolder}", // Maps C:\Users\user1\project1
+      "remoteRoot": "." // To current working directory ~/project1 ，注意修改，不然找不到要调试的文件。
+    }
+  ]
+}
+```
+
+##### 启动方式 1
+
+attach 进程。
+
+1. 在要调试的程序中加入语句：
+
+```shell
+import debugpy
+
+# 5678 is the default attach port in the VS Code debug configurations.
+# Unless a host and port are specified, host defaults to 127.0.0.1
+debugpy.listen(5678)   # 调试 server 监听调试端口
+print("Waiting for debugger attach")
+debugpy.wait_for_client() # 等待 client 接入调试
+debugpy.breakpoint()
+print('break on this line')
+```
+
+2. 启动程序。
+3. 点击，启动 remote attach 。
+
+##### 启动方式 2
+
+使用命令启动程序进行调试：
+
+```shell
+# 注意修改参数
+python3 -m debugpy --listen 1.2.3.4:5678 --wait-for-client -m myproject
+```

@@ -458,7 +458,7 @@ for epoch in epochs:
         scaler.update()
 ```
 
-## Kaggle 使用
+## Kaggle
 
 - 时间
   - CPU 与 GPU，每周限制 30 小时，每次 CPU 和 GPU session 限制 12 小时，TPU session 限制 9 小时。
@@ -476,4 +476,17 @@ for epoch in epochs:
   - 当时长快用完时，在后台跑一个 12 小时的程序，等于白嫖约 12 小时；跑两个 12 小时的程序，等于白嫖约 24 小时。
   - 在训练完后可以在 Kaggle Jupyter Notebook 界面点击查看当次训练的存储和计算资源的占用情况。
 - 注意
-	- persistence 选项只针对 interactive session ，对 save version 不起作用。
+  - persistence 选项只针对 interactive session ，对 save version 不起作用。
+
+## Colab
+
+基于 docker 分配环境。
+
+- 时间
+	- 单次 12 小时。
+- 存储
+	- 内存 13 G 。
+- 注意
+	- GPU 资源由 Colab 动态分配。
+	- 开启 session 需要重新安装各种非默认包。
+	- 启动 GPU 时会连接到新的运行时（runtime），新运行时中没有已下载的数据。

@@ -1057,8 +1057,8 @@ rosnode cleanup 清除不可连接的节点。
 ```shell
 rostopic bw     显示话题的带宽。
 rostopic delay  显示话题的延迟，依据 header 的信息。
-rostopic echo   打印指定话题消息到屏幕。
-rostopic find   通过类型找到话题。
+rostopic echo   打印指定话题的消息到屏幕。
+rostopic find   通过类型查找话题。
 rostopic hz     显示话题的发布频率。  
 rostopic info   显示活动话题的信息。
 rostopic list   列出活动的话题。
@@ -1113,6 +1113,14 @@ rosparam list    列出所有参数
 - rqt_publisher
 
 	一个 GUI 插件，可以可视化节点间的信息。启动：`rosrun rqt_publisher rqt_pulisher` 。
+	
+- 给 `/cmd_vel` 发送简单圆周运动：
+
+```shell
+# 指定消息格式内的关键变量即可
+# -r 10 表示速率（hz）
+rostopic pub -r 10 /cmd_vel geometry_msgs/Twist '{linear: {x: 0.2, y: 0, z: 0}, angular: {x: 0, y: 0, z: 0.5}}'
+```
 
 ## 坐标变换
 
@@ -1152,7 +1160,7 @@ geometry_msgs/Transform transform        # 坐标信息
     float64 w
 ```
 
-欧拉角描述坐标轴的旋转角度，即翻滚，俯仰，偏航，通过旋转达成坐标系方向的转换。从一个坐标系转换到另一个坐标系存在多种欧拉角变换，四元数可以克服欧拉角对于坐标系方向变换方式的二义性，保持两个坐标系间变换方式唯一。
+欧拉角描述坐标轴的旋转角度，即翻转，俯仰，偏航，通过旋转达成坐标系方向的转换。从一个坐标系转换到另一个坐标系存在多种欧拉角变换，四元数可以克服欧拉角对于坐标系方向变换方式的二义性，保持两个坐标系间变换方式唯一。
 
 - `geometry_msgs/PointStamped`
 
@@ -1184,7 +1192,7 @@ geometry_msgs/Point point                # 点坐标
 # 参数说明
 rosrun tf2_ros static_transform_publisher x偏移量 y偏移量 z偏移量 z偏航角度 y俯仰角度 x翻滚角度 父级坐标系 子级坐标系
 
-# 使用示例
+# 使用示例，也可使用 launch 文件
 rosrun tf2_ros static_transform_publisher 0.2 0 0.5 0 0 0 /baselink /laser
 ```
 
@@ -1196,7 +1204,7 @@ rosrun tf2_ros static_transform_publisher 0.2 0 0.5 0 0 0 /baselink /laser
 
 ```xml
 <launch>
-    <node pkg="" type="static_transform_publisher" name="child" args="0.2 0.8 0.3 0 0 0 /world /child" output="screen" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="child" args="0.2 0.8 0.3 0 0 0 /world /child" output="screen" />
 </launch>
 ```
 
@@ -1760,6 +1768,8 @@ target_link_libraries(mynodeletlib
 
 ## 机器人系统仿真
 
+建立功能包，添加 urdf xacro 依赖。
+
 主要有三部分：
 
 - URDF（Unified Robot Description Format）
@@ -1768,7 +1778,7 @@ target_link_libraries(mynodeletlib
 
 - Rviz（ROS Visualization Tool）
 
-	感知环境。
+	环境感知的信息。
 
 - Gazebo
 
@@ -1924,8 +1934,6 @@ urdf 文件是 XML 格式的文件，主要包含以下标签：
 
 机器人模型可能是半沉到地下的，因为默认情况下，刚体的物理中心点位于地图原点。可以将基准 link 设置为一个尺寸极小的 link（比如半径为 0.001m 的球体，或边长为 0.001m 的立方体），然后再在基准 link 上添加底盘等刚体，这样虽然仍然存在基准 link 半沉的现象，但是基本可以忽略。这个基准 link 一般称之为 base_footprint 。
 
-以 base_footprint  为固定坐标系原点。
-
 若不使用 base_footprint  而使用初始偏移的方式，则 link 坐标系源点与 link 物理中心会有偏移，不利于后期复杂操作。
 
 ##### check_urdf
@@ -2062,8 +2070,9 @@ controllers: {
 5. 此时调用 rostopic list 会发现一个话题：`/cmd_vel`，可以发布 cmd_vel 话题消息控制模型运动，也可编写节点，或者直接通过如下命令发布消息:
 
 ```shell
-rostopic pub -r 10 /cmd_vel geometry_msgs/Twist \
-'{linear: {x: 0.2, y: 0, z: 0}, angular: {x: 0, y: 0, z: 0.5}}'
+# 指定消息格式内的关键变量即可
+# 做圆周运动
+rostopic pub -r 10 /cmd_vel geometry_msgs/Twist '{linear: {x: 0.2, y: 0, z: 0}, angular: {x: 0, y: 0, z: 0.5}}'
 ```
 
 ### Gazebo
@@ -2126,7 +2135,7 @@ Gazebo 也可使用 SolidWorks 导出的模型文件。
     <!-- 加载 rviz 的配置文件启动 rviz -->
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rviz_test)/config/first_model.rviz" />
 
-    <!-- 注意，自己的包名不能叫 rviz ， 否则需要删除工作空间中自建的名为 rviz 的相关文件夹-->
+    <!-- 注意，自己的包名不能叫 rviz ， 否则需要删除工作空间中名为 rviz 的相关文件夹-->
     
     <!-- 启动机器人状态和关节状态发布节点 -->
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />

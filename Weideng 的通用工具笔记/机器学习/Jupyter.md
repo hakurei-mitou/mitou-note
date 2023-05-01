@@ -44,4 +44,10 @@ Cell 命令模式目前支持的常用 Jupyter Notebook 快捷键
 
 - 运行 Shell 命令
 
-	`!`  + Shell 命令。
+	- `!`  + Shell 命令。
+	
+	  在新的 shell 进程中执行。
+	
+	- `%`  + Shell 命令。
+	
+	  在当前 shell 进程执行。（`%cd dir`才能切换当前目录）

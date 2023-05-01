@@ -1,8 +1,8 @@
-# 常见 loss
+# 常见指标与 loss
 
 以下分类为粗略的分类，以实际使用为准。
 
-## 一般
+## 指标
 
 ### F1-score
 
@@ -72,7 +72,7 @@ $$
 
 （相对熵，KL 散度，KL 距离，Kullback–Leibler divergence）
 
-![image-20230328144652543](images/常见 loss/image-20230328144652543.png)
+![image-20230328144652543](images/常见指标与 loss/image-20230328144652543.png)
 
 当 $P(x)$ 和 $Q(x)$ 的相似度越高，KL散度越小。
 
@@ -84,7 +84,7 @@ $$
 
 JS 散度是 KL 散度的一种变形。
 
-![image-20230328144702744](images/常见 loss/image-20230328144702744.png)
+![image-20230328144702744](images/常见指标与 loss/image-20230328144702744.png)
 
 JS 具有对称性，且结果更加平滑。
 
@@ -109,7 +109,7 @@ IoU = \frac {A \cap B} {A \cup B} =
 $$
 
 
-![image-20230328143759796](images/常见 loss/image-20230328143759796.png)
+![image-20230328143759796](images/常见指标与 loss/image-20230328143759796.png)
 
 
 

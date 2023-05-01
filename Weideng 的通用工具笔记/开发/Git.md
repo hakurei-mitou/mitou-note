@@ -426,7 +426,10 @@ Body 部分的格式是固定的，必须写成 `This reverts commit <hash>.`，
 
 - `git clone <仓库路径> [本地目录]`
 
-	**克隆**整个版本库。若不指定本地目录，会自动设为克隆的仓库名。
+  **克隆**默认分支（一般是 master，main）的所有版本。
+
+  - 若不指定本地目录，会自动设为克隆的仓库名，克隆后可进一步用命令切换版本。
+  - 使用 `git clone -b <分支名> <git_url>`  克隆指定分支。
 
 - `git fetch [远端名] [远端分支名][:在本地重命名的分支名]`
 
@@ -448,8 +451,12 @@ Body 部分的格式是固定的，必须写成 `This reverts commit <hash>.`，
 
     查看分支，并显示与远端分支的关联关系。
 
-  - `git push <远端名> --delete <分支名>`
+  - `git branch -b`
 
+    查看所有分支，红色的是远端有但本地还没有的分支。
+  
+  - `git push <远端名> --delete <分支名>`
+  
     删除远端分支。
 
 
@@ -484,7 +491,7 @@ Body 部分的格式是固定的，必须写成 `This reverts commit <hash>.`，
 
 - `git checkout <版本号>`
 
-	切换到对应标签的分支。
+	切换到对应标签的版本。
 
 ### 本地标签
 
@@ -536,3 +543,9 @@ Body 部分的格式是固定的，必须写成 `This reverts commit <hash>.`，
 
 1. git bash 终端输入命令：`git config --global core.quotepath false`
 2. 若乱码，则继续在 git bash 界面中右击空白处，选择`选项->文本->本地Locale`，设置为`zh_CN`，旁边的字符集选框选设为`UTF-8`。
+
+### git 子模块（子项目）
+
+（submodule ）
+
+对于含有 .gitmodules 文件的项目，clone 是需要使用 `git clone --recursive <git_url>` ，以便递归获取子项目。

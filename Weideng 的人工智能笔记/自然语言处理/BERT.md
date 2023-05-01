@@ -36,6 +36,8 @@ BERT 使用 Transformer 的 Encoder ，用以提取特征。
 
 ## Self-supervised Learning
 
+（自监督学习，SSL）
+
 自监督学习不需要标签，属于 unsupervised learning，其主要是为其它任务做准备，进行监督学习任务。
 
 一般 Self-supervised learning 是让模型做一些“填空”的任务。
@@ -90,22 +92,13 @@ BERT 只会做“填空题”，但其可以被调整、改造后用来做各式
 
 相应的，不使用 fine-tune 做任务称为 train from **Scratch** （从零开始、从头开始、白手起家）。
 
-### 使用 BERT Case 1
+## 使用 BERT
 
-对于 Sentiment Analysis 任务，输入句子，句首加 [CLS] ，关注 [CLS] 位置的输出，输出 positive 或 negative 的类别：
-
-![image-20220929150804977](images/BERT/image-20220929150804977.png)
-
-- 初始化时，Linear 参数是随机初始化的，但 BERT 初始化为 pre-train 后的状态，比随机初始化 BERT 的结果好。
-- 训练时，Linear 和 BERT 都有梯度下降更新参数。
-
-对于 scrath 方式，BERT 的参数就是随机初始化的。
-
-## GLUE
+### GLUE
 
 - GLUE（General Language Understanding Evaluation）
 
-[GLUE](https://gluebenchmark.com/) 是一个任务集（benchmark），包含一系列任务。
+[GLUE](https://gluebenchmark.com/) 是一个任务集（benchmark），包含一系列 Text 相关的任务。
 
 一般将模型经过各种 fine-tune 后用在 GLUE 的九个任务上，以测试一个 self-supervised 模型的能力。
 
@@ -121,7 +114,16 @@ BERT 只会做“填空题”，但其可以被调整、改造后用来做各式
 
 GLUE 也有中文版本：[CLUE](https://www.cluebenchmarks.com/)  。
 
-## 使用 BERT
+### Case 1
+
+对于 Sentiment Analysis 任务，输入句子，句首加 [CLS] ，关注 [CLS] 位置的输出，输出 positive 或 negative 的类别：
+
+![image-20220929150804977](images/BERT/image-20220929150804977.png)
+
+- 初始化时，Linear 参数是随机初始化的，但 BERT 初始化为 pre-train 后的状态，比随机初始化 BERT 的结果好。
+- 训练时，Linear 和 BERT 都由梯度下降更新参数。
+
+对于 scrath 方式，BERT 的参数就是随机初始化的。
 
 ### Case 2
 
@@ -157,9 +159,9 @@ GLUE 也有中文版本：[CLUE](https://www.cluebenchmarks.com/)  。
 
 ![image-20220929160851696](images/BERT/image-20220929160851696.png)
 
-### Seq2Seq
+## Seq2Seq
 
-如何 pre-train a Seq2Seq model 呢？
+如何 pre-train 一个 Seq2Seq model 呢？
 
 BERT 只 pre-train 了 Encoder ，没有 pre-train Decoder ，如何 pre-train Decoder ？
 
@@ -234,3 +236,237 @@ Multi-BERT 能够在英文问题填英文，中文问题填中文，如果不同
 ![image-20220930133224694](images/BERT/image-20220930133224694.png)
 
 详见：https://arxiv.org/abs/2010.10041 。
+
+## for Speech and Image
+
+在语音和图片上的自监督学习。
+
+### SUPERB
+
+（Speech processing Universal PERformance Benchmark）
+
+一个语音上的任务集（benchmark）：
+
+![image-20230415190015899](images/BERT/image-20230415190015899.png)
+
+### Generative Approach
+
+#### Masking
+
+将一些语言片段 mask ，然后输入 Mockingjay 模型（结构与 BERT 一样，只是针对语音数据做了一些策略改动），输出一排向量，用这些向量还原输入。
+
+![image-20230420195818040](images/BERT/image-20230420195818040.png)
+
+语音数据不同于文字，相邻 feature 间的差异非常小，如果一个位置只 mask 一个 feature，可能导致模型只能学到简单的内插，因此要一次 mask 多个相邻的 feature 。实际上，文字的 mask 中，也可以 mask 多个连续 token 。
+
+对某些语音维度 mask 可以更容易学习到关于 speaker 的信息。
+
+![image-20230420201755568](images/BERT/image-20230420201755568.png)
+
+#### Predicting Future
+
+预测下一个特征，在语音上，往往要预测下第 $n$ 个特征，
+
+![image-20230420202402431](images/BERT/image-20230420202402431.png)
+
+对于图片，将图片处理为 sequence ，一样可以采用 masking 和 predicting future ：
+
+![image-20230420203031422](images/BERT/image-20230420203031422.png)
+
+### Predictive Approach
+
+预测图像的旋转角度：
+
+![image-20230420204214375](images/BERT/image-20230420204214375.png)
+
+将图像切分为两块，然后预测其中一块在另一块的附近什么位置；预测语音中的两段相距多少秒：
+
+![image-20230420204457025](images/BERT/image-20230420204457025.png)
+
+直接预测复杂的东西比较困难，可以将特征进行 clustering 后的类别作为预测对象，在 mask 输入的基础上进行训练：
+
+
+
+![image-20230425160818183](images/BERT/image-20230425160818183.png)
+
+### Contrastive Learning
+
+（对比学习）
+
+让机器在不产生预测的情况下进行自监督学习。（属于自监督学习的范畴）
+
+#### 基本思想
+
+使同属于 positive 或 negative 的两个样本的特征编码越接近越好，分属于 positive 和 negative 的两个样本的特征编码越远越好：
+
+![image-20230425161447726](images/BERT/image-20230425161447726.png)
+
+其中，猫与猫越接近越好，猫与狗越远越好。
+
+自监督学习中并不知道样本的类别，所以需要一些处理手段。
+
+#### for iamge
+
+同一张图片的不同增强结果属于同一类别，另一张图片的增强结果属于不同类别：
+
+![image-20230425162034079](images/BERT/image-20230425162034079.png)
+
+#### for speech
+
+##### CPC 与 Wav2vec
+
+将语言信号输入 encoder 进行编码（编码向量），然后使用 predicter 对编码预测出一个特征向量（预测向量）。
+
+CPC 使用 GRU 作为 predicter ，Wav2vec 使用 CNN 作为 predicter 。
+
+将预测向量和其相邻位置的编码向量同属于 positive ，与其它句子或不相邻的编码向量属于 negative 。
+
+然后使用 liner 分类器，使同类接近，异类疏远：
+
+![image-20230425163056188](images/BERT/image-20230425163056188.png)
+
+自监督训练完后，可以将 encoder 用于下游任务，也可叠加上 predicter 用于下游任务。
+
+##### VQ-Wav2vec
+
+VQ-Wav2vec 的 encoder 输出离散的类别（discrete token）而不是连续的特征向量：
+
+![image-20230425164811553](images/BERT/image-20230425164811553.png)
+
+VQ-Wav2vec 想要利用输入文字的 BERT 。（文字属于 discrete token，属于离散类别）
+
+将 VQ-Wav2vec 的 encoder 训练好后，但其固定住，用于将语音转换为 discrete token ，然后按照训练 BERT 的方法进行训练（下图演示的是 BERT 的 mask 策略）：
+
+![image-20230425165355995](images/BERT/image-20230425165355995.png)
+
+离散的 token 有助于提取语音中的类似语素的内容信息。
+
+##### Wav2vec 2.0
+
+- 将 encoder 和 BERT 的 encoder 一起训练。
+
+- 离散 token 不易训练，让 encdoer 输出一般的连续向量，同时输出离散 token 。
+
+- 将 encoder 输出的一些向量 mask 住，训练整个模型，然后进行对比学习。
+
+- 使用一个线性分类器
+
+	- 同类
+
+		使 mask 位置对应的 BERT encoder 输出的向量与同一位置的离散 token 接近。
+
+	- 异类
+
+		使 mask 位置对应的 BERT encoder 输出的向量与其它位置的离散 token 疏远。
+
+![image-20230425170552128](images/BERT/image-20230425170552128.png)
+
+- Continuous input is critical
+
+	作者在实验中直接将离散 token 输入 BERT 的性能比输入连续向量效果好，作者认为是因为连续向量比离散向量包含的信息更多。
+
+- Quantized target improves performance
+
+	整个模型最终的 target 是离散 token 的比连续向量效果好，但差距不大。
+
+- Why not formulated as typical classification？
+
+	见对比学习的本质。
+
+#### 对比学习的本质
+
+Wav2vec 2.0 为什么不作为一个一般的 classification 问题，直接预测离散 token ？
+
+李宏毅认为语音对应的 token 数量非常多，如果直接分类计算量会非常大，所以使用对比学习的方式减少计算量。
+
+- 直接作为分类任务预测离散 token ，需要模型对 positive 概率大，对所有的 negative 概率小。
+- 使用对比学习，需要模型对 positive 接近（概率大），只需要对某几个 sample 出的 negative 疏远（概率小）。
+
+BERT 对 mask 位置做分类，使得 ground truth 概率越大越好。
+
+如果用对比学习理解 BERT ，它使得 mask 位置的 embedding 与 ground truth 接近与其它疏远：
+
+![image-20230425173422626](images/BERT/image-20230425173422626.png)
+
+将 BERT 用在语音上时，将一段语音 mask ，要求 mask 对应位置的预测与当前位置的语音接近，其它位置的语音疏远。
+
+但 BERT 的输出是一个 embedding ，与语音的信息量差距非常大，所以要用一些 transform 将语言转换后再对比：
+
+![image-20230425195013613](images/BERT/image-20230425195013613.png)
+
+上图，在文字上，negative 的 token 是有限的，而在语言上，语言的变化穷举起来相当多，即 negative 的 sample 是无限的，所以不应该将语音转为连续向量，而应转为离散 token ：
+
+![image-20230425195248481](images/BERT/image-20230425195248481.png)
+
+上图，红框部分的 transform 就相当于 Wav2vec 2.0 的 encoder 的一部分功能，将语言转为离散 token ，而其它功能就相当于一个预训练模型（红框部分）：
+
+![image-20230425195748785](images/BERT/image-20230425195748785.png)
+
+可见，Wav2vec 2.0 就是对预训练模型（比如 BERT）做了针对语音的处理。
+
+#### negative example 的选择
+
+negative example 不能选得太简单，否则模型学不到太多有用的东西，比如直接就能靠简单得颜色区分。
+
+也不能选得太难，特别不能将属于同一类的样本作为 negative ，否则将导致同类的疏远，这是显然错误的。
+
+在自监督学习中，样本没有标签，选择 negative 的策略有一定概率选择到同一类样本作为 negative ，此时可以使用 Bootstrapping Approaches 避免 negative example 的选择。
+
+### Bootstrapping Approaches
+
+如果只使用 positive example ，会导致模型 collapse ，即输入任何图片，模型的输出都是一样的零向量：
+
+![image-20230425201510621](images/BERT/image-20230425201510621.png)
+
+如何在没有 negative example 的情况下，又避免 collapse 呢？
+
+可以将一张图片的增强结果作为 positive ：
+
+- 左侧使用一个 encoder 输出向量。
+- 右侧使用一个 encoder ，再使用一个较小的 predictor 输出向量。
+- 两个输出向量越接近越好。
+- 在训练时，只更新右侧的梯度。
+- 更新梯度后，再将右侧 encoder 的参数复制到左侧 encoder ，使其保持一致。
+
+![image-20230425201629691](images/BERT/image-20230425201629691.png)
+
+这样就可以在不使用 negative 的情况下，避免 collapse 。（原因未知）
+
+我觉得这能让 predictor 的部分学习到 example 的增强。
+
+由 Knowledge Distillation 理解 Bootstrapping ，每次 student 学到一点东西后，它就成为 teacher ：
+
+![image-20230425203802359](images/BERT/image-20230425203802359.png)
+
+其中，初始的 encoder 的权值即使是随机的也可以起到作用
+
+### Simply Extra Regularization
+
+本方法也可以避免 negative example 的使用。
+
+主要有 Barlow Twins 和 Variance-Invariance-Covariance Regularization (VICReg) ，二者比较相似，以下以 VICReg 为例。
+
+- invariance
+
+	只使用 positive 训练 encoder ，使其输出接近。
+
+	- 只有  invariance 会导致 collapse 。
+
+- variance
+
+	给 encoder 一堆图片，要求输出的向量在对应维度上方差大于一个阈值。
+
+	- 可以避免 encoder 对任何图片都输出一样的向量。
+
+- covariance
+
+	对一堆图片输出的向量计算 covariance 矩阵，希望非对角线的位置接近 0 。
+
+	- 可以让 latent space 内对每个维度的利用更均匀。
+	- 如下图，排列为一条线的点在 x 和 y 方向的方差都是够大的，但没有散开的点利用的维度多，因为直线可以用更少的维度表示。
+	- 多利用维度意味着对特征表示的 laten space 的利用更充分。
+	- 原论文中 covariance 是非必需的，加了 variance 就能避免 collapse 。
+
+![image-20230425204645756](images/BERT/image-20230425204645756.png)
+
+其中，对语言的应用可见 DeLoRes 。

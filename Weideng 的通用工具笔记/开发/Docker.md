@@ -61,12 +61,12 @@ Docker 是一个开源应用容器引擎。
 
 ## 注意事项
 
-- 在 Docker 中修改文件后要重新启动容器，重启某些应用也是如此。
+- 在 Docker 中修改配置文件后要重新启动容器，重启某些应用也是如此。
 - Docker 容器内部的环境会保持精简，所以可能会缺少许多命令，需要手动安装，建议将配置文件和重要数据作为数据卷。
 
 ## 服务命令
 
-- `systemctl <操作> docker`（systemctl 即 system control）
+- `systemctl <操作> docker`（systemctl 即 system control）或 `service docker start` 。
 
 	具体命令依操作系统而定。
 
@@ -196,7 +196,7 @@ Docker 是一个开源应用容器引擎。
 
 Docker 有多种虚拟网络（虚拟设备）类型，一般使用 bridge 类型，相当于虚拟的网桥，交换机。
 
-在同一个 bridge 网络（即虚拟局域网）中的容器不需要端口映射（到宿主机端口）就可以互相访问。？？？待试验。ping
+在同一个 bridge 网络（即虚拟局域网）中的容器不需要端口映射（到宿主机端口）就可以互相访问。
 
 - `docker network create -d bridge <netName>`
 
@@ -316,9 +316,11 @@ Dockerfile 是一个文本文件，包含多条指令，每一条指令构建一
 
 - 可将项目制作为 Docker 镜像。
 
-### 私有仓库
+## 仓库
 
-可以使用私有仓库存储私人的镜像，最好将私有仓库单独部署到一台服务器上。
+[Docker Hub](https://hub.docker.com/) 是 Docker 官方的公共镜像仓库。
+
+也可以使用私有仓库存储私人的镜像，最好将私有仓库单独部署到一台服务器上。
 
 ## 服务编排
 
