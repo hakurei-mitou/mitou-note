@@ -111,7 +111,9 @@ $$
 
 ![image-20230328143759796](images/常见指标与 loss/image-20230328143759796.png)
 
+### Focal Loss
 
+见 《RetinaNet》
 
 ## 语义分割
 

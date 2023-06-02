@@ -14,19 +14,21 @@ YOLO 速度快，进度稍低。
 
 ## Unified Detection
 
-将输入图片划分为 $S \times S$ 个网格（grid），如果物体的中心落入某个格子（grid cell），该格子（responsible for detecting that object）预测的类别就归为任务预测的物体类别。
+将输入图片划分为 $S \times S$ 个网格（grid），如果物体的中心在某个格子（grid cell），该格子（responsible for detecting that object）预测的类别就归为任务预测的物体类别。
 
-每个 cell 预测 $B$ 个 bounding box 和这些 box 的 confidence score ，confidence 代表 box 包含一个物体的概率，同时也代表 box 的准确性。
+这个网格划分并不是真地画出网格，而是在预测数值时和 loss 计算时依据该网格的形式进行计算。
 
-定义 $\rm confidence = Pr(object) \times IOU^{truth}_{pred} $ ，其中，$\rm Pr(Object)$ 代表了目标存在的概率，如果不存在，应为 $0$ ，如果存在，confidence 等于 IOU 。
+每个 cell 预测 $B$ 个 bounding box 和这些 box 的 confidence score ，confidence 代表 box 包含一个物体的概率，同时也代表 box 的准确性。（注意，这里的 confidence 混合了两种意义）
+
+定义 $\rm confidence = Pr(object) \times IOU^{truth}_{pred} $ ，其中，$\rm Pr(Object)$ 代表了目标存在的概率（亦称 objectness），如果不存在，应为 $0$ ，如果存在，confidence 等于 IOU 。
 
 每个 bounding box 预测五个参数 $x,y,w,h$ 和 confidence ，$x,y$ 代表 box 中心相对于最近的 grid cell（比如左上角）的 offset 比例。
 
 每个 cell 预测 $C$ 个类别概率 $\rm Pr(Class_i|Object)$ ，与 bounding box 数量 $B$ 无关。
 
-At test time ，将类别概率和 confidence 相乘，得到每个 box 的类别概率以及 box confidence score，即最终 object detection 结果的置信度 ：
+At test time ，将类别概率和 confidence 相乘，得到每个 box 的类别概率以及 IOU score，即最终 object detection 结果的置信度 ：
 $$
-\rm Pr(Class_i|Object) \times Pr(Object) \times IOU^{truth}_{pred} = Pr(Class_i) \times IOU^{truth}_{pred}
+\rm final\_detection\_confidence = \rm Pr(Class_i|Object) \times [Pr(Object) \times IOU^{truth}_{pred}]= Pr(Class_i) \times IOU^{truth}_{pred}
 $$
 ![image-20230504110908494](images/YOLOv1/image-20230504110908494.png)
 
@@ -58,7 +60,13 @@ YOLO 对每个 cell 预测多个 bounding boxes ，但只希望在每个 cell �
 
 ![image-20230504132953426](images/YOLOv1/image-20230504132953426.png)
 
-其中，$S^2$ 代表 grid cell 数量，$B$ 代表每个 cell 预测的 bounding box 数量 ， $\mathbb1^{obj}$ 是一个选择函数，如果满足右上角的条件（有或没有 object），值为 $1$ ，否则为 $0$ ，也就是说，$\mathbb1^{obj}_i$ 使得不包含物体的 cell 对 loss 无影响，$\mathbb1^{obj}_{ij}$ 使得 cell 内的非 responsible predictor 对 loss 无影响。训练时，已知 cell 是否含有物体，测试时，使用阈值过滤结果。
+其中，$S^2$ 代表 grid cell 数量，$B$ 代表每个 cell 预测的 bounding box 数量 。
+
+ $\mathbb1^{obj}$ 是一个选择函数，如果满足上标的条件（有或没有 object），值为 $1$ ，否则为 $0$ ，也就是说，$\mathbb1^{obj}_i$ 使得不包含物体的 cell 对 loss 无影响，$\mathbb1^{obj}_{ij}$ 使得 cell 内的非 responsible predictor 对 loss 无影响。
+
+训练时，已知 cell 是否含有物体，同时可以排序找到最大 IOU，可直接代入选择函数。
+
+测试时，对 confidence  使用阈值过滤 detection 结果。
 
 - 对每个 cell 预测的每个 box
 
@@ -72,11 +80,11 @@ YOLO 对每个 cell 预测多个 bounding boxes ，但只希望在每个 cell �
 
   - 第 3 行
 
-  	box 的置信度。（注意这里的 $C$ 代表置信度，而不是物体类别）
+  	box 的 confidence 。（注意这里的 $C$ 代表 confidence ，而不是物体类别）
 
   - 第 4 行
 
-  	不包含物体时，box 的置信度。
+  	不包含物体时，box 的 confidence 。
 
 - 对每个 cell
 
@@ -87,7 +95,7 @@ YOLO 对每个 cell 预测多个 bounding boxes ，但只希望在每个 cell �
 
 ### Inference
 
-作者使用 Non-maximal suppression（NAS）处理多余的 bounding box 。
+作者使用 Non-maximal suppression（NMS）处理多余的 bounding box（根据 confidence）。
 
 最终每个 cell 预测一个 bounding box 和一个物体类别。
 

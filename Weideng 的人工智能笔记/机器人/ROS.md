@@ -1122,6 +1122,35 @@ rosparam list    列出所有参数
 rostopic pub -r 10 /cmd_vel geometry_msgs/Twist '{linear: {x: 0.2, y: 0, z: 0}, angular: {x: 0, y: 0, z: 0.5}}'
 ```
 
+- 启动控制结点，通过键盘控制机器人运动
+
+```shell
+# 安装
+sudo apt install ros-noetic-teleop-twist-keyboard
+
+# 命令
+rosrun teleop_twist_keyboard teleop_twist_keyboard.py
+```
+
+```xml
+<-- 集成进 launch --/>
+
+<launch>
+
+  <!-- 键盘控制结点 -->
+  <node name="keyboard_control" pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" />
+
+</launch>
+
+建议新开 shell 使用命令，集成进 launch 时，没有控制方式提示信息，而且可能需要多次 Ctrl + c 才能结束整个 launch 文件的其它结点。
+```
+
+- 查看 tf 树
+
+```shell
+rosrun rqt_tf_tree rqt_tf_tree
+```
+
 ## 坐标变换
 
 各传感器或组件的坐标系是不一样的，需要进行一定的转换，以保证数据的正确。

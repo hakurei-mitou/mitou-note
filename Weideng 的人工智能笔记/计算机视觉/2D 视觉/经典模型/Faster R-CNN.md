@@ -29,10 +29,12 @@ RPN 可以输入任意尺寸的图片，然后输出 a set of rectangular object
 特征向量随后送入相邻的两个全连接网络：
 
 - box-classification layer（cls）
-	- 对每个 anchor box 预测是否含有 object 的 positive 和 negative 二分类概率，共 $2k$ 个 scores 。
+	
+	对每个 anchor box 预测是否含有 object 的 positive 和 negative 二分类概率，共 $2k$ 个 scores 。
+	
 - box-regression layer（reg）
-	- 每个 anchor box 预定义坐标为 4 个值，每个坐标需要一个特征 $dx,dy,dw,dh$ 进行回归，共 $4k$ 个特征。
-	- 使用提取到的特征向量预测的特征对 anchor box 进行回归调整。（对正样本回归）
+	
+	每个 anchor box 预定义坐标为 4 个值，需要用特征预测用于回归的调整值 $t_*$ 进行回归，共 $4k$ 个特征。（对正样本回归）
 
 ![image-20230506163546199](images/Faster R-CNN/image-20230506163546199.png)
 
