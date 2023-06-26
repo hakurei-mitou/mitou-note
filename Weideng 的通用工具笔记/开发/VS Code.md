@@ -130,17 +130,23 @@ Ctrl + Shift + P 打开命令面板，搜索即可使用 jupyter。（Python 扩
 
 ![img](images/VS Code/clipboard-1617546152799.png)
 
-### 远程连接 Linux
+### 远端连接
 
 Remote Development（用里面的 **Remote SSH**）
 
 ![image-20220115212308036](images/VS Code/image-20220115212308036.png)
 
-配置好后可以使用 VS Code 代码提示等功能，但编译要用命令行。
 
-- 配置时遇到的一些问题
-	- 密钥最好在 Git Bash 里用命令生成，有时用 cmd 不行，原因未知。
-	- 权限问题，`.ssh/` 权限为 700，`authorized_keys` 权限为 600 。
+
+密钥免密登录配置：
+
+- 在本地端生成公钥和私钥。
+- 在远端的 `~/.ssh` 目录下 的 `authorized_keys` 下插入公钥。（没有则建立）
+
+如果出现错误，注意：
+
+- Windows 系统中，密钥最好在 Git Bash 里用命令生成，有时用 cmd 不行，原因未知。
+- 权限问题，`.ssh/` 权限应为 700，`authorized_keys` 权限应为 600 。
 
 ### 数据库
 
@@ -535,3 +541,23 @@ set(CMAKE_BUILD_TYPE "Debug")
 ![image-20230502201133585](images/VS Code/image-20230502201133585.png)
 
 与整体项目无关的独立子文件夹内的项目，建议对其打开文件夹后重新配置。
+
+## 远程 GUI？？？
+
+将远程的 GUI（窗口，可以为桌面）显示到本地。
+
+首先将 remote SSH 设置为免密登录。
+
+
+
+修改 ssh 配置文件：？？？？？？
+
+```
+Host 主机名
+  HostName ip地址
+  Port 22
+  User 用户名
+  ForwardX11 yes
+  ForwardX11Trusted yes
+```
+
