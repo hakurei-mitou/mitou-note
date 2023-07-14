@@ -103,11 +103,27 @@ The influence of the receptive field with different sizes is summarized as follo
 
 #### CSPDarknet53
 
-CSPDarknet53 是作者在 Yolov3 主干网络 Darknet53 的基础上，借鉴 CSPNet（Cross Stage Paritial Network）的 CSP 模块的网络。
+CSPDarknet53 是作者在 Yolov3 主干网络 Darknet53 的基础上，借鉴 CSPNet（Cross Stage Paritial Network）的 CSP 模块的网络：
 
 ![image-20230624103515110](images/YOLOv4/image-20230624103515110.png)
 
-其中，每个 CSP 最前面的卷积 layer 的 $stride = 2$ ，有下采样的效果。（有 5 个 CSP 模块，X 代表 Res unit 的个数）
+作者减少了原始 CSP 模块在其 dense block 中的 connection 数目，同时在 partial dense block（X个残差组件）前增加了一个卷积层（X个残差组件前的 CBM）：
+
+![image-20230629163651547](images/YOLOv4/image-20230629163651547.png)
+
+每个 CSP 最前面的 CBM 的 $stride = 2$ （3x3/2），有下采样的效果：（有 5 个 CSP 模块，X 代表 Res unit 的个数）
+
+![image-20230629163732463](images/YOLOv4/image-20230629163732463.png)
+
+CSP 模块中最前面的 CBM 以外的所有 CBM 都是 1x1 卷积 + 3x3 卷积。
+
+整个 CSP 模块相当于一个 concat 通道的长残差连接内，含有多个 add 的短残差连接。
+
+详细一点的参数可见：
+
+![image-20230629163144700](images/YOLOv4/image-20230629163144700.png)
+
+其中，YOLOv4 在使用时，去除掉了 avgpool，connected，softmax 部分。
 
 #### SPP
 
@@ -115,7 +131,7 @@ CSPDarknet53 是作者在 Yolov3 主干网络 Darknet53 的基础上，借鉴 CS
 
 We add the SPP block over the CSPDarknet53 ，因为其能增大感受野，而且对速度影响小。
 
-SPP 输出一维的 feature vecotr，不能直接应用到  Fully Convolutional Network (FCN) 上。
+SPP 输出一维的 feature vecotr，不能直接应用到 Fully Convolutional Network (FCN) 上。
 
 将 SPP 的 concatenation 前的 max pooling 修改为 kernel size（用于池化的 kernel）为 $k \times k,k = \{ 1,5,9,13 \},stride = 1$ ，然后将 feature map concat 起来：（使用 padding 保证 feature map 大小一致）
 
@@ -148,7 +164,7 @@ YOLOv4 采用 FPN 的改进版 PANet，同时进行了一定的修改。
 修改如下：
 
 - 直接在各 level 上使用 head 进行 prediction 。
-- 将下采样和 lateral connection 合并操作，从 addition 改为 concatenation，保留更多信息。（modified PAN）
+- 将下采样和 lateral connection 的合并操作，从 addition 改为 concatenation，保留更多信息。（modified PAN）
 
 ##### Neck 整体
 
@@ -160,7 +176,7 @@ YOLOv4 采用 FPN 的改进版 PANet，同时进行了一定的修改。
 
 ##### FPN 部分
 
-Neck 整体图中，上采样和最上方两个 concat 是 FPN 部分：
+Neck 整体图中，上采样和最上方两个 concat 是 FPN 部分（其属于 PANet，此处为了简略，称为 FPN 部分）：
 
 ![image-20230624134446347](images/YOLOv4/image-20230624134446347.png)
 
@@ -171,7 +187,6 @@ Neck 整体图中，上采样和最上方两个 concat 是 FPN 部分：
 	- 上采样输出的箭头
 
 	  FPN 的 $P_3$（$38 \times 38$）的上采样的输出（$76 \times 76$）。
-
 
 	- backbone 引出的箭头
 	
@@ -264,6 +279,36 @@ CIoU-loss 没有被用于 NMS 是因为：CIoU-loss 在 DIoU-loss 基础上考�
 dropblock 的作者认为：卷积层对 dropout 不敏感，因为卷积通常为：卷积 + 激活函数 + 池化。池化层本身是对相邻单元起作用，导致 dropout 后，网络仍然可以从相邻单元中学习到极其类似的信息。所以，在 FC 中效果好的 droput 在 conv 上效果不好。
 
 ![image-20230623201435652](images/YOLOv4/image-20230623201435652.png)
+
+#### MiWRC
+
+（Multi-input weighted residual connections）
+
+MiWRC 是 EfficientDet 的 BiFPN（Weighted Bi-directional Feature Pyramid Network）中的策略。
+
+BiFPN 即是 NAS-FPN 的改造：
+
+![image-20230629164432713](images/YOLOv4/image-20230629164432713.png)
+
+其中，某个圆代表该 scale level 的 feature，箭头表示 feature 的输入输出方向。
+
+上图意义举例，对于 $P_6$ 这一水平线上（这一 level 上）：
+
+- $P^{in}_6$ 是 $P_6$ 这一 level 的输入，是最左边那个圆。
+- $P^{td}_6$ 是中间的那个圆。（td 表示 intermediate）
+- $P^{out}_6$ 这一 level 的输出，是最右边那个圆。
+
+MiWRC 策略认为不同 scale level 的贡献是有差异的，于是在 BiFPN 内对各尺度 level 的 feature 加权（权重是可学习参数），然后计算该 level 的输出：
+
+![image-20230629201225287](images/YOLOv4/image-20230629201225287.png)
+
+其中，$\epsilon$ 是个很小的数，防止分母为 $0$ 。
+
+YOLOv4 借鉴 MiWRC ，对 PANet 中的各 connection 加权，可分析图中（b）PANet。
+
+注意，YOLOv4 使用 modified PAN，在 concat 的情况下，将各 feature map 乘以加权系数，然后 concat 即可。
+
+这个策略可用 1x1 卷积和权重归一化实现，也就是说，在 YOLOv4 的 PANet 中，每个 concat 后都有一个 1x1 convolution 。
 
 #### Eliminate grid sensitivity
 
@@ -444,7 +489,7 @@ from spatial-wise attention to point-wise attention，把 pooling 改为卷积�
 
 #### modified PAN
 
-将下采样和 lateral connection 合并操作，从 addition 改为 concatenation，保留更多信息：
+将下采样和 lateral connection 的合并操作，从 addition 改为 concatenation，保留更多信息：
 
 ![image-20230601200721318](images/YOLOv4/image-20230601200721318.png)
 
@@ -481,12 +526,9 @@ Bag of Freebies (BoF) for backbone：
 Bag of Specials (BoS) for backbone：
 
 - Mish activation
-
 - Cross-stage partial connections (CSP)
-
 - Multi-input weighted residual connections (MiWRC)
 
-	加权残差连接。
 
 Bag of Freebies (BoF) for detector：
 
@@ -516,7 +558,7 @@ Bag of Freebies (BoF) for detector：
 
 - Random training shapes
 
-	样本的 shape 是随机的，当样本分辨率较小时，自动增加 mini-batch size ，以利用 GPU 。
+	样本的 shape 是随机的（一般设为 32 的倍数），当样本分辨率较小时，自动增加 mini-batch size ，以利用 GPU 。
 
 Bag of Specials (BoS) for detector：
 
