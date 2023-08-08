@@ -139,6 +139,8 @@ SPP 输出一维的 feature vecotr，不能直接应用到 Fully Convolutional N
 
 这样，借助于 SPP 的机制，使得 backbone feature 上有了一个相对更大的感受野。
 
+虽然响应最大的特征会在每个级别中都被保留下来，导致重复，但这样才能保证该特征在特征图上的空间位置关系。
+
 YOLOv3 有一个在其 backbone 后添加 SPP 的版本。
 
 #### SAM

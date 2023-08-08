@@ -20,13 +20,11 @@
 
 RPN 是一种 fully-convolutional network (FCN) 。
 
-RPN 可以输入任意尺寸的图片，然后输出 a set of rectangular object proposals（proposal 坐标）, each with an objectness score（object 的存在分数）。
+RPN 可以输入任意尺寸的图片，然后输出 a set of rectangular object proposals, each with an objectness score（object 的存在分数）。
 
 演示一个通道的情况，在 conv feature map 上使用一个滑动  $n\times n$ window （作者使用 $n =3 $），对每个 window 位置用一个 small network（intermediate layer 中的功能演示单元）提取出一个特征向量（256-d 依据 conv feature map 使用的网络而定）。
 
 同时，对每个 window 的中心点（称为 anchor）引入 $k$ 个人为定义的边框（称为 anchors 或 anchor boxes） 。
-
-anchor 的引入将 box 的预测转化为了一个简单的回归问题。
 
 特征向量随后送入相邻的两个全连接网络：
 
@@ -47,6 +45,19 @@ anchor 的引入将 box 的预测转化为了一个简单的回归问题。
 实际实现中，可以用 3x3 的卷积实现整体的 intermediate layer ，输出一个 256 个通道的 feature map，相当于每一个位置代表一个 256 维向量。
 
 可以使用 1x1 卷积实现 cls layer 和 reg layer 。
+
+### anchor 的作用
+
+如果直接预测边框，object 可能是任何形状，object 可能分布在任何地方，从而 object 的可能的形状和分布位置的数值空间会非常大，不利于网络预测边框来拟合。
+
+- anchor 的引入将 box 的预测转化为了一个简单的回归问题。
+- 可以将 object 的形状规律用人工设计的 anchor 描述。（object 不一定是方形，但我们只需要方形的 box）
+- 可以将 object 的在环境中的分布规律用人工安排的 anchor 分布描述。（我们只需要可能的分布位置）
+- 缩小了模型需要学习的可能的形状空间。
+
+anchor 并不真实存在，只是参与调节因子的计算，而调节因子参与 loss 的计算，从而使网络朝着 anchor 存在一样的方向优化。
+
+如果直接预测边框的宽高，那么宽高的值处于 $(-\infty, + \infty)$ ，如果归一化到 $[0, 1]$ ，那么就相当于是对某个 anchor 做变换，如果以整张图片的宽高为基准，那么 anchor 的宽高就是图片的宽高。
 
 ## ROI Pooling
 

@@ -4,13 +4,17 @@
 
 [CSPNet: A New Backbone that can Enhance Learning Capability of CNN](https://arxiv.org/abs/1911.11929)
 
+每个层级的特征图不一定所有通道都需要密集的信息变换（dense block），选取其中一部分进行 dense block 可以把网络做得更深，同时保留一些没有经过特别多变换的低级特征。
+
 ## Introduction
 
 - 降低计算量。
 
 - 减少内存消耗。
 
-	减少 Dynamic Random-Access Memory (DRAM)  ，即访问内存。
+	减少 Dynamic Random-Access Memory (DRAM)  ，即内存。
+	
+	- 一次输入太大的特征图需要很多内存，拆分可以减少单次内存消耗。
 
 ## Related work
 

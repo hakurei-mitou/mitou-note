@@ -4,20 +4,91 @@
 
 Transformer 是经典的 SeqToSeq 模型，输入一个 sequence （词向量序列）， 输出一个 sequence ，分为 encoder 和 decoder 两个部分。
 
-Transformer 的模型宽度（$d_{model}$）对应词向量的长度或其转化后的长度。
+Transformer 的模型宽度（$d_{model}$）是 embedding 经权重矩阵转换后的长度。
 
-每个样本是一定长度的 sequence ，序列长度补齐时需要填充一个非常小的负数，使 softmax 后这些位置的权重趋于 $0$ 。
+在 batch 中，保持 batch 内长度一致时，序列长度在 padding 时需要填充非常小的负数，使 softmax 后这些位置的权重趋于 $0$ 。
 
-encoder 和 decoder 的输入输出维度都是相同的，输入称为 source ，输出称为 target 。
+## 输入输出维度
+
+### 对于 Transformer 整体
+
+输入是一段文本，输出是一段翻译为例。
+
+概念：
+
+- source sequence 
+
+	Encoder 的输入序列。
+
+- target sequence
+
+	Decoder 的输出序列。
+
+维度对应：
+
+- Encoder 的输入输出维度相同。
+- Decoder 的输入输出维度相同。
+- Encoder 和 Decoder 的输入输出长度可以不同，embedding 维度需要相同。
+
+编码：
+
+- 输入整段文本（整个 sequence）
+	- 实际上，受内存限制，Transformer 无法输入无限长的 sequence，具体长度限制要实际考虑。
+	- 对于超长文本，有相关的处理方法。
+
+解码：
+
+- 自回归
+
+	翻译时 Decoder 需要滑动多次，一次滑动翻译出一个词。
+
+- 非自回归（平行）
+
+	一次全部翻译。
+
+翻译结果长度要看滑动次数和特殊字符的位置。
+
+### 对于 Attention 机制
+
+序列可加 mask ，表示不计算（不 attend）哪些位置。
+
+输入：
+
+- self-attention 中，所有 Q，K，V 的 sequence 的维度都是相同的，因为 Q，K，V 来自同一 source 。
+- attention 中：
+	- Q 的长度为 $L$ ，同时也是 target sequence length 。
+	- K，V 的长度相同，为 $S$ 。
+	- Q，K，V 的 embedding 维度需要相同。
+
+输出：
+
+- 维度与 Q 一致，长度为 $L$ 。
 
 ## 结构总览
 
-- encoder（图左）
-- decoder（图右）
-
-encoder block 重复 $N$ 次，decoder block 也要重复 $N$ 次。（block 也可称为 layer）
+- Encoder（图左）
+- Decoder（图右）
 
 ![image-20220911142123567](images/Transformer/image-20220911142123567.png)
+
+encoder block 重复 $N$ 个，decoder block 重复 $N$ 个（block 也可称为 layer）。实际上，encoder layer 和 decoder layer 的个数可以不同。
+
+一般 decoder 逐字右移（shifted right）进行翻译。 
+
+注意：
+
+- attention 依据 Q 和 K 的关系，然后从 V 中提取特征。
+- self-attention 利用自身与自身的关联（自身内部之间的关联），从自身提取出特征。
+
+attention 的设置：
+
+- Encoder 中利用 self-attention 编码自身的信息，
+
+	比如一个句子，可以由字与字的关系（自身内部的关系），从句子中提取出语义。
+
+- Decoder 中先用 self-attention 编码输入的信息，然后再用 attention 关联 Encoder 的特征。
+
+	不断利用已有句子的信息，然后再融合训练资料里的信息。
 
 ## 语义关联
 
@@ -41,7 +112,7 @@ Transformer 的参数矩阵维度与输入序列长度是无关的（FC 部分�
 
 ### 向量转化
 
-将整个 Sequence 输入 Self-attention 层，Self-attention 将每个向量转化为新的考虑了整个 Sequence 的向量，然后再 position-wise 对应输入多个全连接网络（FC）（输入向量在同一空间，各 FC 可共享权重）：
+将整个 Sequence 输入 Self-attention 层，Self-attention 将每个向量转化为新的考虑了整个 Sequence 信息的向量，然后再 position-wise 对应输入多个全连接网络（FC）（输入向量在同一空间，各 FC 可共享权重）：
 
 ![image-20220725220105961](images/Transformer/image-20220725220105961.png)
 
@@ -90,7 +161,7 @@ dot-product 比 additive 空间更少，计算更快，因为可以有矩阵乘�
 
 注意，每个 $\boldsymbol a_i$  对应的 $\boldsymbol b_i$ 是可以并行计算的。
 
-### 空间关联
+### 特征关联
 
 query、key 和 value 的概念来自推荐系统，给定一个 query ，根据 query 和 key 的关联性寻找最优的 value （self-attention 是寻找多个有价值的 value 再综合）。
 
@@ -127,11 +198,13 @@ attention score :
 
 ![image-20220726101714296](images/Transformer/image-20220726101714296.png)
 
-其中，attention scores 构成 attention matrix，维度为 $N \times N$ ，其中，$N$ 为输入 sequence 的长度。
+其中，attention scores 构成 attention matrix，维度为 $N \times N$（在 attention 中可以不是正方形），其中，$N$ 为输入 sequence 的长度。
+
+self-attention 计算的最终输出为 $O$ ，其维度与输入序列相同。
 
 Self-attention 层需要学习的权重参数为 $\boldsymbol W_q,\boldsymbol W_k,\boldsymbol W_v$ ，维度都是 `(word_vector_len, word_vector_len)` 。
 
-上图演示的矩阵相乘顺序与原论文 SDPA 中的公式相反，但操作是对称同理的，不影响效果，两种方式的输出矩阵 $O$ 互为转置，权重矩阵也互为转置（注意，权重矩阵是自学习的），可调整 SPDA 的公式的顺序，看图理解。
+上图演示的矩阵相乘顺序与原论文 SDPA 中的公式相反，但操作是对称同理的，不影响效果，两种方式的输出矩阵 $O$ 互为转置，权重矩阵也互为转置（注意，权重矩阵是自学习的），建议使用公式的顺序，看图理解大致概念即可。
 
 ### Scaled Dot-Product Attention
 
@@ -145,15 +218,15 @@ Self-attention 层需要学习的权重参数为 $\boldsymbol W_q,\boldsymbol W_
 
 ##### attention 过程理解
 
-attention 模块输入 query，key，value 矩阵。
+attention 模块输入包含 query，key，value 序列的 $Q,K,V$ 矩阵。
 
 1. $QK^T$ 使用内积关联 query 和 key 。
 2. 对 $B$ 的所有元素进行 softmax ，相当于对 key 和 query 的关联度进行了一个多类别的分类，每个元素代表一个类别概率，也即每个元素代表一个关联度的概率，概率越大，关联度越大（所有元素总概率为 $1$）。也就是说，$A^{\prime}$（即 attention score）描述了输入序列中不同 key 和 query 的关联度强度。
-3. $A^{\prime}$ 与 $V$ 矩阵相乘，相当于用 query 和 key 的关联度对 value 做一次特征加权选择，得到最终的输出 $O$ 。
+3. $A^{\prime}$ 与 $V$ 矩阵相乘，相当于用 query 和 key 的关联度对 value 做一次特征加权组合，得到最终的输出 $O$ 。
 
 	某次行乘列即代表：用某个 query 向量与所有 key 向量的关联度（$A^\prime$的 行）对所有 value 向量的某个维度（$V$ 的列）进行加权选择。（权重由 attention score 描述）
 
-attention 输出注意力加权后的 value 矩阵 $O$ 。
+attention 的最终输出 $O$ 为：value sequence 在 attention score 加权后的 feature sequence 。
 
 ##### scale
 
@@ -179,7 +252,7 @@ attention 输出注意力加权后的 value 矩阵 $O$ 。
 $$
 \frac {x_1 - x_2} {x_1 + x_2} \ll \frac {y_1 - y_2} {y_1 + y_2}
 $$
-![image-20230517101742758](images/Transformer/image-20230517101742758.png)
+
 
 ## Encoder
 
@@ -199,21 +272,60 @@ self-attention 只是衡量向量间的关联性，后续的 FC 也是 position-
 
 $\boldsymbol e_i$ 有多种设置方式，也可由机器学得。
 
+整个 position 的编码的维度与编码目标的维度相同。
+
+对于 NLP 中文本的一维 positional encoding，原文使用 sin 和 cos 的不同频率：
+
+![image-20230718153732287](images/Transformer/image-20230718153732287.png)
+
+其中，$pos$ 表示 position 编码的 sequence 的位置，$i$ 表示该位置的维度。PE 表示 positional embedding ，Sinusoid 意为以 sin 为基的一类函数。
+
+考虑 PE 某个位置的 positional embedding vector，每个 embedding 表示其在 sequence 中的位置。
+
+一个 position 相当于一个数，对应的 positional embedding 相当于该数的编码，以二进制编码为例：
+
+![image-20230718161455535](images/Transformer/image-20230718161455535.png)
+
+其中，编码的低数位变化频率高（波长短），高数位变化频率低（波长长），不同的频率值表示编码的不同位
+
+表示绝对位置关系：
+
+- 某个波长表示某数位（embedding vector 中的第几个元素的位置），$i$ 决定波长（$1000^{2i / d_{model}}$）。（上图某列）
+- 某个节点表示某个 sequence position ，$pos$ 决定取波长下 sin 或 cos 值域的某个节点。（上图某行）
+
+表示相对位置关系：（即不同位置的 PE vector 可以由线性转换得到）
+
+- 使用 sin 和 cos 交替表示，使得数学上满足可线性转换的形式。
+
+[由来和详细原理可见](https://zhuanlan.zhihu.com/p/454482273)
+
+序列长度为 50，位置编码维度为 128 的位置编码可视化：
+
+![image-20230718164108797](images/Transformer/image-20230718164108797.png)
+
+其中：
+
+- 横轴为 depth，表示 embedding 的第几维。
+- 纵轴为 position ，表示 sequence 的 position 。
+- 颜色表示 PE 的值（来自 sin，cos 交替），值域为 $[-1,1]$ 。
+
+图中每一行的所有颜色（值），即表示一个 position embedding 。
+
 ### Multi-Head Attention
 
 （多头注意力）
 
 有效的关联性可能不止一种，需要计算多种关联性，即使用多种 $\boldsymbol q^t_i$ 与多种 $\boldsymbol k^t_i$ （由多种转换矩阵转换而来）计算关联性，然后 concat 各个头的信息得到最终输出。
 
-Multi-Head Attention 在 embedding 的不同位置学习它的不同子空间（subspaces ）的 representation，然后将这些信息 concat 起来。
+Multi-Head Attention 在 embedding 的不同位置学习它的不同子空间（subspaces ）的 representation 。
 
-embedding 的不同位置表示不同的输入的不同性质，对应不同的关联性。
+embedding 的不同位置表示不同的输入的不同性质，对应不同的关联性。实际上，如果 embedding 维度比较大，在只有一个 head 时计算出的 attention score 对 embedding 的关联的表征能力很有可能不够。
 
-每个 head 的计算方式与单个 head 的 attention 一致。
-
-每个头即是一组 $Q,K,V$ 的转换矩阵。
+每个 head 的计算方式与单个 head 的 attention 一致，每个 head 都包含一组 $Q,K,V$ 的转换矩阵：
 
 ![image-20230322194933024](images/Transformer/image-20230322194933024.png)
+
+其中，各个 head 输出的 attention matrix concat 起来形成 $hd_v \times d_{model}$ 的 feature，再乘以一个用于转换维度的转换矩阵 $W^O$（对各 head 的 attention score 进行加权组合），得到最终输出的 feature sequence，维度为 $L \times d_{model}$ ，与 $Q$ 维度相同。
 
 注意，每个 head 是对 embedding 的一部分维度计算，有约束如下：
 $$
@@ -221,13 +333,11 @@ d_k = d_v = \frac {d_{model}} h
 $$
 其中，$h$ 是 head 的个数。
 
-每个 head 的维度减小了，但拼接的总的 attention matrix 的大小和计算量与单个全维度的 head 相当。
+每个 head 的 attention matrix 的大小相同（也与不划分 head 的 attention matrix 的大小相同），都是 $L \times S$ 。
 
-每个 head 的 attention matrix 的规模比不划分 head 时小，可以一定程度防止 attention matrix 的值都非常小（softmax 的输出总和为 $1$ ），以减小浮点数的表示误差（值太小，浮点数的表示误差会较大）。输入 sequence 很长时容易出现这种情况，若长度为 $1000$ ，单 head 下 attention matrix 为 $10^6$ ，而总和为 $1$ ，attention score 的值会被挤到小数点后 $6$ 位左右。
+![image-20230517101742758](images/Transformer/image-20230517101742758.png)
 
-#### 问题
-
-如果 Multi-Head Attention 对每个 head 都计算完整的 embedding 维度，这时相当于 ensemble 。
+其中，$h$ 表示 head 个数，Concat 后的 Linear 表示转换矩阵 $W^O$ 。
 
 embedding 的不同维度反映事物不同方面的特征，Multi-Head 直接划分为多份，当 embedding 中描述相同方面的特征被 Multi-Head 的划分分隔时，对模型不会造成太大影响，模型会在 FC 中学习到描述相同方面的特征的关系。也就是说，FC 能够处理这种描述相同方面的特征被分开的情况。
 
@@ -250,19 +360,17 @@ $$
 
 也可使用两个 1x1 的卷积和一个 ReLU 描述该运算。
 
-是 position-wise 的 FC ，即每个词向量在 attention 后的对应位置都有一个 FC 。
+是 position-wise 的 FC ，即每个词向量在 attention 输出的 feature sequence 上的对应位置都有一个 FC 。（单 head 和多 head 输出维度是一样的）
 
-FC 对 attention 输出的注意力加权后的 value 向量做进一步处理，同时为网络增加非线性的拟合能力。
+FC 对 attention 输出的 feature sequence 进行处理，为网络增加非线性的拟合能力和一定的不变性能力。
 
-其原论文维度为 $d_{model} = 512, d_{ff} = 2048, d_{model} = 512$，$d_{model}$ 即是一个词向量维度（embedding 维度）。
-
-这是一种 Sparse Autoencoder 架构的网络，中间宽，两边窄：
+其原论文维度为 $d_{model} = 512, d_{ff} = 2048, d_{model} = 512$，这是一种 Sparse Autoencoder 架构的网络，中间宽，两边窄：
 
 ![image-20230516164917583](images/Transformer/image-20230516164917583.png)
 
 这是一个将向量转换到更高维的空间（学习更高维空间的表示），然后再降维（提取主要特征）的过程，相当于完成了一个较为泛化的空间转换。
 
-宽的隐藏层的较大向量空间能够抵御更多变化和噪音，类似 PointNet 将点升维以达成 permutation 不变形的原理。
+宽的隐藏层的较大向量空间能够抵御更多变化和噪音，类似 PointNet 将点升维以达成 permutation 不变性的原理。
 
 中间的稀疏层的稀疏向量在需要不同输入的相互关系（共同特征）时才能发挥作用，如果是单独将一个输入转换到稀疏再复原，实际上是没有意义的。
 
@@ -290,7 +398,7 @@ FC 对 attention 输出的注意力加权后的 value 向量做进一步处理�
 	- 表示文本开始的文本字符集外的特殊符号（Begin of Sentence，BOS）（Special Token）
 - decoder
 	- 继续输入上次的 encoder 的输出。（所有的 cross attention）
-	- 逐步输入上一次 decoder 的输出。
+	- 逐步输入上一次 decoder 的输出。（长度逐渐增加）
 - decoder 逐步输出
 	- 直到输出指定的结束符 END（属于 BOS ）。
 
@@ -299,7 +407,7 @@ FC 对 attention 输出的注意力加权后的 value 向量做进一步处理�
 - AT 的 decoder 逐步输入，逐步输出
 - NAT 的 decoder 一次输入一排 BOS，一次输出整个句子（词数与 BOS 数量相同）。
 
-NAT 的 decoder 可以将 masked attention 换为一般的 attention 。
+NAT 的 decoder 可以将 masked attention 换为一般的 attention ，一次计算整个输入 sequence 。
 
 NAT 的输出长度有两种方式：
 
@@ -341,6 +449,8 @@ masked attention 内部结构与一般 self-attention 一致，decoder 在 AT �
 ### Cross Attention
 
 decoder 中承接 masked attention 的输出和 encoder 的输出的部分，称为 cross attention 。
+
+注意，decoder 中的 cross attention（第二个 attention）部分是 attention ，第一个 attention 部分是 self-attention 。
 
 ![image-20220912145438837](images/Transformer/image-20220912145438837.png)
 

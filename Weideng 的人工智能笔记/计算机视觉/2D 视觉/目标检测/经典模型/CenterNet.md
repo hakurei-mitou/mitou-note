@@ -127,19 +127,19 @@ CenterNet 独特点：
 
 Keypoint types include $C = 17$ human joints in human pose estimation [4, 55], or $C = 80$ object categories in object detection [30,61].
 
-作者使用行业默认的 $R = 4$ ，output stride 表示 downsamples the output prediction by a factor $R$ 。
+作者使用行业默认的 $R = 4$ ，output stride 表示 downsamples the output prediction by a factor $R$ 。（相当于对 image 划分网格）
 
-$\hat Y_{x,y,c} = 1$ 表示一个检测到的 keypoint ，$\hat Y_{x,y,c} = 0$ 表示 background，其中，$c$ 表示类别。
+heatmap 中的一个元素 $\hat Y_{x,y,c} = 1$ 表示一个检测到的 keypoint ，$\hat Y_{x,y,c} = 0$ 表示 background，其中，$c$ 表示类别（每个 element 的范围是 $[0,1]$ ，表示某个位置的是某个类别的 score）。
 
-作者使用了几种 fully-convolutional encoder-decoder networks 从 iamge $I$ ，预测 $\hat Y$ ：
+作者使用了几种 fully-convolutional encoder-decoder networks 从 image $I$ ，预测 $\hat Y$ ：
 
 - A stacked hourglass network
 - upconvolutional residual networks (ResNet)
 - deep layer aggregation (DLA)
 
-对每个 ground truth keypoint $p \in \mathcal R^2$ of class $c$ ，计算一个  low-resolution equivalent $\tilde p = \lfloor \frac p R \rfloor$ （即下采样后的对应点）。
+对每个 ground truth keypoint $p \in \mathcal R^2$ of class $c$ ，计算一个 low-resolution equivalent $\tilde p = \lfloor \frac p R \rfloor$ （即下采样后的对应点）。
 
-为 heatmap 上的每个 ground truth keypoints 按 Gaussian kernel 分配权值：
+为 heatmap 上的每个 ground truth keypoints 按 Gaussian kernel 分配权值（沿着 heatmap 的水平切面）：
 
 ![image-20230704153220946](images/CenterNet/image-20230704153220946.png)
 
@@ -152,6 +152,8 @@ loss 使用 penalty-reduced pixel-wise logistic regression with focal loss：
 ![image-20230704153500567](images/CenterNet/image-20230704153500567.png)
 
 To recover the discretization error caused by the output stride，对每个 center point 预测一个 local offset $\hat O \in \mathcal R^{\frac W R \times \frac H R \times 2}$ 。
+
+划分网格导致类别的预测是基于某个 cell 的，为了找到 obejct 的中心，还需要对在每个 cell 内预测相对 offset 。
 
 所有类别都使用相同的 offset prediction 方式，offset 的训练使用 L1 loss ：
 
@@ -179,23 +181,27 @@ To recover the discretization error caused by the output stride，对每个 cent
 
 作者在实验中一般设 $\lambda_{size} = 0.1, \lambda_{off} = 1$ 。
 
-作者使用 a single network 预测 keypoints $\hat Y$ ，offset $\hat O$ ，size $\hat S$ 。
+作者共享一个一般的 fully-convolutional backbone network  ，然后使用三个 head 分别预测 keypoints type $\hat Y$ ，center offset $\hat O$ ，size $\hat S$ 。
 
-network 在每个 location 输出 $C + 4$  维，所有输出使用一个一般的 fully-convolutional backbone network 。
+对于不同 head （表示的模态）的信息，the features of the backbone are then passed through a separate 3 *×* 3 convolution, ReLU and another 1 *×* 1 convolution 。
 
-对于不同模态的信息，the features of the backbone are then passed through a separate 3 *×* 3 convolution, ReLU and another 1 *×* 1 convolution 。
+总的来说，整个模型在每个 location 输出 $C + 4$  维（$C$ 维类别，$2$ 维中心 offset，$2$ 维 size）。
+
+
 
 ![image-20230704161009005](images/CenterNet/image-20230704161009005.png)
 
 ### From points to bounding boxes
 
-At inference time，extract the peaks in the heatmap for each category in dependently 。
+At inference time，extract the peaks in the heatmap for each category independently （在 heatmap 的每个类别代表的水平切面独立进行）。
 
-选择响应值大于等于 8-connected neighbors 的 peak，然后保存 top 100 peaks 。
+选择置信度大于等于 8-connected neighbors 的 peak，然后保存 top 100 peaks 。（进一步地，可以对 peaks 使用置信度阈值过滤出最终结果）
 
 设 $\mathcal {\hat P}_c $ 是类别 $c$ 的 $n$ 个 detected center points $\mathcal {\hat P} = \{(\hat x_i, \hat y_i) \}^n_{i=1}$ 的集合，其中，每个 keypoint location 由 integer coordinates $(x_i, y_i)$ 表示。
 
-使用 keypoint value $\hat Y_{x_iy_ic}$ 作为 a measure of its detection confidence 和产生该 location 的 bounding box ：
+使用 keypoint value $\hat Y_{x_iy_ic}$ 作为 a measure of its detection confidence（检测的置信度）。
+
+该 location 的 bounding box 为：
 
 ![image-20230704163521686](images/CenterNet/image-20230704163521686.png)
 

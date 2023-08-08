@@ -65,7 +65,7 @@ $$
 
 ### MAE
 
-均绝对误差（Mean Absolute Error，MAE) ，也叫 L1 loss 。
+均方绝对误差（Mean Absolute Error，MAE) ，也叫 L1 loss 。
 $$
 MSE = {1 \over n} \sum\limits_{i = 1}^n |y_i - \hat{y}|
 $$

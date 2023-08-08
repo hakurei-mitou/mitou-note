@@ -53,7 +53,7 @@ direct set predictions 的两个主要因素：
 
 #### 匹配方式
 
-DETR 的 decoder 一次预测 $N$ 个 predictions（设为比一张图片一般包含的 object 数大得多的数）。
+DETR 的 decoder 一次预测 $N$ 个 predictions（设为比一张图片一般包含的 object 数大得多的数），原论文设置 $N = 100$ （COCO 的一张 image 的最大 object 个数不超过 100）。
 
 设 GT 为 $y_i$ ，有 $N$ 个，不足 $N$ 个则 padded with $\varnothing$ （no object）。
 
@@ -81,7 +81,7 @@ matching cost 需要综合考虑 class prediction 和 box 的相似度，作者�
 
 这个 matching 过程找到的是 one-to-one 的匹配，而不是其它算法的一个 GT 对多个 anchor 的匹配。
 
-#### 匹配的 loss
+#### 匹配方式的 loss
 
 预测和 GT 都是无序的 set ，所以作者在使用 $\mathcal L_{match}$ 找到最优的匹配方式后，再采用 $L_{\rm Hungarian}$ 对最优匹配方式计算 loss 。
 
@@ -95,18 +95,25 @@ matching cost 需要综合考虑 class prediction 和 box 的相似度，作者�
 
 在 $\mathcal L_{match}$ 中，probabilities 使用对 $\hat p_{\sigma(i)}(c_i)$ 进行选择函数，而在 $\mathcal L_{\rm Hungarian}$ 中使用 log-probabilities ，这是因为：
 
-- 在 $\mathcal L_{match}$ 中，如果 $c_i = \varnothing$ ，那么这个 box 的类别概率不应该贡献任何相似度 ，它的类别可以随意连接。
-- 而在 $\mathcal L_{\rm Hungarian}$ 中的最优匹配的情况下，类别为空的概率需要贡献可能性（loss），以衡量该预测 box 和 GT 间的匹配度。
+- 在 $\mathcal L_{match}$ 中，如果 $c_i = \varnothing$ ，那么这个 box 的类别概率不应该贡献任何相似度 ，它的类别可以随意连接。（找到最优连接方式）
+- 而在 $\mathcal L_{\rm Hungarian}$ 中的找到最优匹配的情况下，类别为空的概率需要贡献可能性（loss），以衡量该预测 box 和 GT 间的匹配度。（计算该连接方式的 loss）
+
+一般分类的 loss 会使用 log-probabilities，实际上，作者发现让分类 loss 值与 box loss 值处在相近大小空间，去掉 $\log \hat p_{\sigma(i)}(c_i)$ 的 $\log$ 后效果更好。
 
 #### Bounding box loss
 
-box loss 组合使用 L1 loss 和 generalized IoU loss（GIoU）。
+box loss 组合使用 L1 loss 和 generalized IoU loss（GIoU）：
 
-box loss $\mathcal L_{box}(b_i, \hat b_{\sigma(i)})$ ，定义为：
-
-![image-20230705160155576](images/DETR/image-20230705160155576.png)
+![image-20230717103931060](images/DETR/image-20230717103931060.png)
 
 其中，$\lambda_{iou} , \lambda_{L1}$ 是两个超参数。
+
+- 对于 L1 loss
+	- L1 loss 与框的大小有关，框越大，L1 loss 越大。
+	- DETR 使用 Transformer 处理全局的特征，对大物体检测能力强，会出现很多大框，导致大框的 loss 非常多，不利于优化。
+- 对于 GIoU loss
+	- GIoU loss 与框的大小无关。
+	- 用来弥补 DETR 对小目标的检测能力。
 
 $\mathcal L_{\rm Hungarian}$ 和 box loss 都被 normalized by the number of objects inside the batch.
 
@@ -124,19 +131,25 @@ $\mathcal L_{\rm Hungarian}$ 和 box loss 都被 normalized by the number of obj
 
 首先，使用一个 1x1 convolution 减少 channel 的数量，将 $f$ 变为 feature map $z_0 \in \mathbb R^{d \times H \times W }$ 。
 
-encoder 需要 sequence 作为输入，作者 collapse $z_0$ 的空间维度到一维，变成 $d \times HW$ ，其中，$H\times W$ 为 sequence 长度 $N$ ，embedding 维度为 $d$ 。
+因为 Transformer 是 permutation-invariant ，作者对每个 encoder layer 的 input（其中的 K，Q）和 decoder layer  cross-attention 的 input（其中的 K）进行 fixed（spatial）positional encodings [47] 。（需要让网络利用 image 中的空间位置信息，每个 layer 都位置编码可以强化 patch 的位置信息）
 
-因为 Transformer 是 permutation-invariant ，作者对每个 encoder layer 的 input（其中的 K，Q）和 decoder layer 的 input（其中的 K）进行 fixed positional encodings [47] 。（需要让网络利用 image 中的空间位置信息，每个 layer 都位置编码可以强化 patch 的位置信息）
+positional encoding 与 encoding 的目标 feature sequence 或 map 维度一致，element-wise 相加即可。
+
+encoder 需要 sequence 作为输入，作者 collapse $z_0$ 的空间维度到一维，变成 $d \times HW$ ，其中，$H\times W$ 为 sequence 长度 $N$ ，embedding 维度为 $d$ 。
 
 #### Transformer decoder
 
-decoder 输入 $N$ 个 size 为 $d$ 的 input embedding（也是 encoder 的最终输出）。
+decoder 输入 $N$ 个 size 为 $d$ 的可学习的 input embedding（准确地说，是一个 learnable positional embedding），可随机初始化，维度为 $N \times d$ 。（将第一个 decoder layer 输入的 object queries 作为权重参数）
 
-因为 Transformer 的 decoder 也是 permutation-invariant，作者将这 $N$ 个 input embedding 进行 positional encodings 后（称为 object queries）输入 decoder 的每个 attention layer 。
+因为 Transformer 的 decoder 也是 permutation-invariant，作者将这 $N$ 个 input embedding 进行 positional encodings 后（称为 object queries）输入 decoder。注意，每个 decoder layer 都会对输入进行 positional encoding 。
 
-$N$ 个 obejct queries 经过 decoder 输出为 $N$ 个 embedding ，然后由 FFN 独立地编码为 box coordinates 和 class labels ，产生 $N$ 个最终 predictions 。
+decoder 采用 parallel（Non-autoregresive）方式运行。（目标的检测没有先后顺序）
 
-将 image 作为 context ，模型能够 globally 考虑 objects 间的 pair-wise relations 。
+$N$ 个 obejct queries 经过 decoder 输出为 $N$ 个 embedding ，然后由 FFN 独立地编码为 box coordinates 和 class labels ，产生 $N$ 个最终 predictions 。（object queries 的数量决定了最终预测的框的数量）
+
+每个 decoder layer 中的 self-attention 对该 layer 的 obejct queries 做自注意力，可以察觉到冗余框间的关联，起到消除冗余框的作用。
+
+将 image 作为 context ，DETR 能够 globally 考虑 objects 间的 pair-wise relations 。
 
 #### Prediction feed-forward networks (FFNs)
 
@@ -154,7 +167,20 @@ FFN 为 3 层的 hidden dimension 为 $d$ 的使用 ReLU 的网络，然后跟�
 
 作者发现在训练时对 decoder 使用 auxiliary  loss（辅助 loss）有利于模型学习到正确的存在的 objects 数量。
 
-作者在每个 decoder layer 之后都使用 prediction FFNs and Hungarian loss，所有 predictions FFNs 共享参数。
+auxiliary  loss 即是在每个 decoder layer 之后都使用 prediction FFNs and Hungarian loss，所有 predictions FFNs 共享参数。
 
 在每个 prediction FFN 前使用 layer-norm to normalize the input of FFN，每个 layer-norm 也共享参数。
 
+## Appendix
+
+### Detailed architecture
+
+![image-20230717104159265](images/DETR/image-20230717104159265.png)
+
+其中，decoder 中第一个 layer 的 self-attention 部分可以省略。
+
+object queries 引出的，最右侧的线为 query 的 positional encoding 。
+
+## 杂项
+
+object queries 可以起到 anchor 的作用，引导大致的 object 位置。

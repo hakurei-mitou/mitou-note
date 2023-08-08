@@ -122,7 +122,7 @@ SPPF 结构如下：
 
 SPPF 对 SPP 进行了结构上的变换，用串联的小 kernel 代替了并联大 kernel，在保持相同感受野下，加快了计算速度。
 
-考虑 SPP 与 SPPF 各 maxpool 的参数，每个 maxpool 的输入输出特征图大小都相同，考虑 feature map（设为 $W$）的每个点位：
+考虑 SPP 与 SPPF 各 maxpool 的参数，每个 maxpool 的输入输出特征图大小都相同，考虑的输出 feature map（设为 $W$）的每个点位，由一个 kernel 的范围计算而来：
 $$
 \begin{cases}
 \rm SPP \implies  ((5 \times 5) + (9 \times 9) + (13 \times 13)) \times W = 4147 W
@@ -236,15 +236,13 @@ YOLOv5 制定 anchor size 的方法与 YOLOv3 相同，采用聚类得到，但�
 
 ### 编解码
 
-网络预测调节因子。
-
 - 编码
 
-	从 anchor 与 GT 计算调节因子。
+	对 box 计算调节因子，依据图片宽高进行归一化，YOLO 的网格中心和宽高变换等变换。
 
 - 解码
 
-	从（预测的）调节因子与 anchor 计算（预测的）bounding box 。
+	从编码还原 box 。
 
 ### box 回归
 

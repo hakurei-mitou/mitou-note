@@ -51,3 +51,24 @@ Cell 命令模式目前支持的常用 Jupyter Notebook 快捷键
 	- `%`  + Shell 命令。
 	
 	  在当前 shell 进程执行。（`%cd dir`才能切换当前目录）
+
+## 显示视频
+
+```python
+# 将 mp4 编码为 base64 然后用 HTML 显示。
+
+def show_mp4(url, width):
+
+    from IPython.display import HTML
+	from base64 import b64encode
+    
+    mp4 = open(url,'rb').read()
+    data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
+
+    HTML("""
+    <video width=400 controls autoplay loop>
+          <source src="%s" type="video/mp4">
+    </video>
+    """ % data_url)
+```
+

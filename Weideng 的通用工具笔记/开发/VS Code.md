@@ -333,7 +333,27 @@ SQLTools
 
 点击 run and debug （python：file） 即可。
 
-### attach 方式
+需要参数时，配置 `.vscode/launch.json` 文件：
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current Config File",
+            "type": "python",
+            "request": "launch",
+            "program": "tools/train.py",
+            "args": ["${file}"],
+            "console": "integratedTerminal",
+            "env": {"PYTHONPATH":"./"},
+            "justMyCode": false
+        }
+    ]
+}
+```
+
+### debugpy  方式
 
 在本地和远端都要安装 debugpy ：
 
