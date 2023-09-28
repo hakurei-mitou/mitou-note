@@ -10,7 +10,7 @@
 
   Spring 在运行时，依据 xml 格式的配置文件和注解等，动态地调用、创建对象与使用方法，将对象交由 IOC 容器统一管理。
 
-  - IOC 包含依赖注入（Dependency Injection，DI）和依赖查找（Dependency Lookup）两种方式。
+  - IOC 包含依赖注入（Dependency Injection，DI）和依赖查找（Dependency Lookup，DL）两种方式。
   - Spring 采用 DI 。
 
 - 面向切面编程（Aspect-oriented Programming，AOP）
@@ -43,7 +43,7 @@ Spring 的每个模块（或组件，也可以是框架）都可以单独存在�
 
 ## Spring Boot
 
-基于 Spring，主要是自动化 Spring 配置，简化 Spring 操作。
+基于 Spring，主要是自动化 Spring 配置，简化 Spring 操作，也就是对 Spring 的加强。
 
 - Spring Boot 使用嵌入式的 Servlet 容器（例如 Tomcat、Jetty 或 Undertow 等），应用无需打成 WAR 包 。
 - Spring Boot 提供了一系列的“starter”项目对象模型（POMS）来简化 Maven 配置。

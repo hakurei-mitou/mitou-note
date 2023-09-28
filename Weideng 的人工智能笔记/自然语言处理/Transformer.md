@@ -173,6 +173,11 @@ query、key 和 value 的概念来自推荐系统，给定一个 query ，根据
 
 所谓 self-attention 即是指 key，value，query 都来自同一个输入，来自不同输入即是 attention 。
 
+实际上，”attention 机制“不特指 Transformer 的 attention 模块，也有其它的 attention 模块：
+
+- 当该模块对自身内的特征进行“注意”时，称为 self-attention 。
+- 该模块对不同模态或不同来源的特征进行交叉“注意”时，称为 cross-attention 。
+
 ### 矩阵表示
 
 整个计算结构可以表示为矩阵计算。
@@ -318,6 +323,8 @@ $\boldsymbol e_i$ 有多种设置方式，也可由机器学得。
 有效的关联性可能不止一种，需要计算多种关联性，即使用多种 $\boldsymbol q^t_i$ 与多种 $\boldsymbol k^t_i$ （由多种转换矩阵转换而来）计算关联性，然后 concat 各个头的信息得到最终输出。
 
 Multi-Head Attention 在 embedding 的不同位置学习它的不同子空间（subspaces ）的 representation 。
+
+多头时，由内积计算的关联的细粒度更高。
 
 embedding 的不同位置表示不同的输入的不同性质，对应不同的关联性。实际上，如果 embedding 维度比较大，在只有一个 head 时计算出的 attention score 对 embedding 的关联的表征能力很有可能不够。
 

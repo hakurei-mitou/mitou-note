@@ -344,7 +344,7 @@ SQLTools
             "type": "python",
             "request": "launch",
             "program": "tools/train.py",
-            "args": ["${file}"],
+            "args": ["${python_file}"],
             "console": "integratedTerminal",
             "env": {"PYTHONPATH":"./"},
             "justMyCode": false
@@ -352,6 +352,10 @@ SQLTools
     ]
 }
 ```
+
+`configurations` 默认执行第一条配置。
+
+配置多条时，可以依据不同的 `name` 选择配置项。
 
 ### debugpy  方式
 
