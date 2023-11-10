@@ -36,7 +36,7 @@ camera 和 point cloud 的 fusion 方法需要 time synchronized and calibrated 
 
 将每个 voxel 内所有的点作为一个 group 。
 
-点的密度变化程度高，An illustration is shown in Figure 2, where Voxel-1 has signifificantly more points than Voxel-2 and Voxel-4, while Voxel-3 contains no point.
+点的密度变化程度高，An illustration is shown in Figure 2, where Voxel-1 has significantly more points than Voxel-2 and Voxel-4, while Voxel-3 contains no point.
 
 #### Random Sampling
 

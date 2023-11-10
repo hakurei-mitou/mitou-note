@@ -97,20 +97,26 @@ HEAD 引用指向当前分支或某个版本。
 
 - `git reset --soft HEAD^`常用于撤销上一次错误的 commit 。
 
-### 忽略列表
+### gitignore
 
 创建文件 `.gitignore`，指定不接受 Git 管理的文件名或通配符，其会在 `git add .` 时被忽略。
 
+#### 忽略规则
+
+```
+target   // 忽略名为 target 目录（不必是完整的 path 路径）
+angular.json   // 忽略这个 angular.json 文件
+log/*   // 忽略 log 目录下的所有文件
+css/*.css   // 忽略css目录下的.css文件
+```
+
+注意，子文件夹中的  `.gitignore` 文件的作用范围为整个 git 管理的项目。
+
+#### 检查
+
 - 成功被忽略的文件或文件夹在 `git status` 时查看不到。
-
-- 忽略规则
-
-	```
-	target   // 忽略 target 目录
-	angular.json   // 忽略这个 angular.json 文件
-	log/*   // 忽略 log 目录下的所有文件
-	css/*.css   // 忽略css目录下的.css文件
-	```
+- 使用 `git check-ignore -v <file or folder>` ，会输出`gitignore`文件的路径，匹配行的编号和实际模式。（可接受多个文件名作为参数）
+- 显示所有被忽略文件的列表：`git status --ignored` 。
 
 ## 分支操作
 
