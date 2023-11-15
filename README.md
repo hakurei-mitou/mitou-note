@@ -1,6 +1,6 @@
 # 说明
 
-这是 Weideng 积累的学习笔记。
+这是 mitou 积累的学习笔记。
 
 为保证最佳显示效果（特别是公式），最好用本地软件（如 Typora，VS Code）打开，避免网页显示错误。
 
@@ -44,11 +44,12 @@
 
 	考研时的笔记，包含知识结构梳理、易错易混要点以及一些简化描述。（年代久远，格式不佳，不建议模仿）
 
-## Weideng 的 Java 笔记
+## mitou 的 Java 笔记
 
-- Java 相关
+- Maven
+- Spring Boot Web
 
-## Weideng 的人工智能笔记
+## mitou 的人工智能笔记
 
 - 基本概念
 - 常识杂项
@@ -62,16 +63,16 @@
 - 机器人
 - 自然语言处理
 
-## Weideng 的 Python 笔记
+## mitou 的 Python 笔记
 
 - Django
 
-## Weideng 的 Linux C++ 笔记
+## mitou 的 Linux C++ 笔记
 
 - Linux 基本使用，系统编程，网络编程
 - C++ 相关
 
-## Weideng 的数据结构与算法笔记
+## mitou 的数据结构与算法笔记
 
 - 数据结构
 - 基础算法
@@ -80,7 +81,7 @@
 - 数学
 - 图论
 
-## Weideng 的数据库笔记
+## mitou 的数据库笔记
 
 - 关系型数据库
 	- MySQL
@@ -88,7 +89,7 @@
 - 数据库中间件
   - Mycat
 
-## Weideng 的 Web 前端笔记
+## mitou 的 Web 前端笔记
 
 - 语言
 	- HTML
@@ -97,7 +98,7 @@
 - 框架
   - Vue
 
-## Weideng 的通用工具笔记
+## mitou 的通用工具笔记
 
 以下是粗略的分类，各工具完全可以灵活使用。
 
@@ -117,7 +118,7 @@
 	- Tableau
 
 
-## Weideng 的考研笔记
+## mitou 的考研笔记
 
 - 数学
 

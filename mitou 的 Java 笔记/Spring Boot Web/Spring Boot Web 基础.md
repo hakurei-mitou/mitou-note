@@ -481,7 +481,7 @@ public class ResponseController {
 
 ![image-20231006145325238](images/Spring Boot Web 基础/image-20231006145325238.png)
 
-定义在一个实体类 Result 来包含以上信息，代码如下：
+定义在一个实体类 Result 来包含以上信息，代码如下：（可用 lombok 简写）
 
 ```java
 public class Result {
