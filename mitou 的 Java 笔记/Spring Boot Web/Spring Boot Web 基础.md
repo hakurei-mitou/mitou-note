@@ -520,7 +520,7 @@ public class Result {
         this.data = data;
     }
 
-    // 增删改 成功响应(不需要给前端返回数据)
+    // 增删改 成功响应(不需要给前端返回数据，只需要返回状态)
     public static Result success(){
         return new Result(1,"success",null);
     }

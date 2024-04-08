@@ -85,6 +85,30 @@ public class TimeAspect {
 }
 ```
 
+注意：
+
+- Spring AOP
+
+	只能切入有 Bean 容器管理的对象的方法。
+
+- Aspectjrt 和 Aspectweaver
+
+	在 Spring AOP 的基础上进行了升级，包括支持任何方法。
+	
+- Bean 以外对象的方法，IDEA 可能识别到切入，但实际运行时有切入到。
+
+额外引入依赖：
+
+```xml
+Aspectweaver 包含了 Aspectjrt ，只需引入 Aspectweaver 。
+
+<dependency>
+　　<groupId>aspectj</groupId>
+　　<artifactId>aspectjweaver</artifactId>
+　　<version>1.9.5</version>
+</dependency>
+```
+
 ## 核心概念
 
 - JoinPoint（连接点）
@@ -112,7 +136,7 @@ public class TimeAspect {
 	描述通知与切入点的对应关系（通知+切入点）。
 
 	- 通过切面就能够描述当前 aop 程序需要针对于哪个原始方法，在什么时候执行什么样的操作。
-	- 切面所在的类，我们一般称为**切面类**（添加 @Aspect 注解的类）
+	- 切面所在的类，一般称为**切面类**（添加 @Aspect 注解的类）
 
 ![image-20231012190901886](images/AOP/image-20231012190901886.png)
 
@@ -120,7 +144,7 @@ public class TimeAspect {
 
 	目标对象即通知所应用的对象。
 
-Spring 的 AOP 基于动态代理技术实现，程序运行时会自动基于动态代理技术为目标对象生成一个对应的代理对象，在代理对象当中就会对目标对象当中的原始方法进行功能的增强：
+Spring 的 AOP 基于动态代理技术实现，程序运行时会自动基于动态代理技术为目标对象生成一个对应的代理对象，在代理对象中对目标对象的原始方法进行功能增强：
 
 ![image-20231012191300076](images/AOP/image-20231012191300076.png)
 
@@ -165,7 +189,7 @@ public class MyAspect1 {
         //调用目标对象的原始方法执行
         Object result = proceedingJoinPoint.proceed();
         
-        //原始方法如果执行时有异常，环绕通知中的后置代码不会在执行了
+        //原始方法如果执行时有异常，环绕通知中的后置代码不会再执行
         
         log.info("around after ...");
         return result;
@@ -177,7 +201,7 @@ public class MyAspect1 {
         log.info("after ...");
     }
 
-    //返回后通知（程序在正常执行的情况下，会执行的后置通知）
+    //返回后通知（程序在正常执行的情况下，会执行后置通知）
     @AfterReturning("execution(* com.itheima.service.*.*(..))")
     public void afterReturning(JoinPoint joinPoint){
         log.info("afterReturning ...");

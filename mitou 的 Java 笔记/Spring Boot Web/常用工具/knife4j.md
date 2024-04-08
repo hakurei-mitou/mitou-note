@@ -18,57 +18,48 @@ knife4j 是为 Java MVC 框架集成 Swagger 生成 Api 文档的增强解决方
 
 1. 导入 knife4j 的maven坐标
 
-	在pom.xml中添加依赖
+	在pom.xml中添加依赖。
 
-	```xml
-	<dependency>
-	   <groupId>com.github.xiaoymin</groupId>
-	   <artifactId>knife4j-spring-boot-starter</artifactId>
-	</dependency>
-	```
+2. 编写配置类 WebMvcConfiguration.java
 
-2. 在配置类中加入 knife4j 相关配置
+  ```java
+  @Configuration
+  public class WebMvcConfiguration extends WebMvcConfigurationSupport {
+   
+      /**
+      	knife4j 相关配置
+       * 通过knife4j生成接口文档
+       * @return
+  	*/
+      @Bean
+      public Docket docket() {
+          ApiInfo apiInfo = new ApiInfoBuilder()
+                  .title("苍穹外卖项目接口文档")
+                  .version("2.0")
+                  .description("苍穹外卖项目接口文档")
+                  .build();
+          Docket docket = new Docket(DocumentationType.SWAGGER_2)
+                  .apiInfo(apiInfo)
+                  .select()
+                  .apis(RequestHandlerSelectors.basePackage("com.sky.controller"))
+                  .paths(PathSelectors.any())
+                  .build();
+          return docket;
+      }
+      
+   
+      /**
+       * 设置静态资源映射，否则接口文档页面无法访问
+       * @param registry
+      */
+      protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+          registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
+          registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+      }
+  }
+  ```
 
-	WebMvcConfiguration.java
-
-	```java
-	/**
-	     * 通过knife4j生成接口文档
-	     * @return
-	*/
-	    @Bean
-	    public Docket docket() {
-	        ApiInfo apiInfo = new ApiInfoBuilder()
-	                .title("苍穹外卖项目接口文档")
-	                .version("2.0")
-	                .description("苍穹外卖项目接口文档")
-	                .build();
-	        Docket docket = new Docket(DocumentationType.SWAGGER_2)
-	                .apiInfo(apiInfo)
-	                .select()
-	                .apis(RequestHandlerSelectors.basePackage("com.sky.controller"))
-	                .paths(PathSelectors.any())
-	                .build();
-	        return docket;
-	    }
-	```
-
-3. 设置静态资源映射，否则接口文档页面无法访问
-
-	WebMvcConfiguration.java
-
-	```java
-	/**
-	     * 设置静态资源映射
-	     * @param registry
-	*/
-	protected void addResourceHandlers(ResourceHandlerRegistry registry) {
-	        registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
-	        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
-	}
-	```
-
-4. 访问测试
+3. 访问测试
 
 	- 接口文档访问路径为格式为` http://ip:port/doc.html `
 

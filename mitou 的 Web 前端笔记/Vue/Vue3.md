@@ -121,6 +121,9 @@ reactive：
    // 修改数据更新视图
    state.msg = 'this is new msg'
  }
+ function test() {
+     
+ }
 </script>
 
 <template>
@@ -143,6 +146,9 @@ ref：
    // 修改数据更新视图必须加上.value
    count.value++
  }
+ function test() {
+     
+ }
 </script>
 
 <template>
@@ -153,12 +159,19 @@ ref：
 reactive 对比 ref：
 
 1. 都是用来生成响应式数据
+
 2. 不同点
-	1. reactive不能处理简单类型的数据
-	2. ref参数类型支持更好，但是必须通过.value做访问修改
-	3. ref函数内部的实现依赖于reactive函数
+	1. reactive 不能处理简单类型的数据
+	2. ref 参数类型支持更好，但是必须通过 `.value` 做访问修改
+	3. ref 函数内部的实现依赖于 reactive 函数
+	
 3. 在实际工作中的推荐
-	1. 推荐使用ref函数，减少记忆负担
+	
+	ref 函数基于 reactive，比 reactive 更健壮，推荐尽量使用 ref 。
+
+注意，Vue3 中没有了 this ，因为不再是在一个表示组件的 JS 对象中编写代码（该 this 指向组件对象）。
+
+一般使用 const 定义响应式的引用变量，是为了防止该引用的指向被修改（防止丢失响应式对象）。
 
 ## computed
 
@@ -182,7 +195,7 @@ const filterList = computed(item=>item > 2)
 
 ## watch
 
-侦听一个或者多个数据的变化，数据变化时执行回调函数，俩个额外参数 immediate控制立刻执行，deep开启深度侦听
+侦听一个或者多个数据的变化，数据变化时执行回调函数，两个额外参数 immediate 控制立刻执行，deep 开启深度侦听
 
 ### 侦听单个数据
 
@@ -318,6 +331,8 @@ onMounted(()=>{
 
 ![image.png](images/Vue3/7.png)
 
+注意：属性传递的数据会在元素创建时就存在于元素内。
+
 ### 子传父
 
 基本思想
@@ -340,6 +355,8 @@ onMounted(()=>{
 2. 通过ref标识绑定ref对象到标签
 
 ![image.png](images/Vue3/9.png)
+
+注意，`hiRef.value` 才是元素本身。
 
 ### defineExpose
 
@@ -378,6 +395,12 @@ onMounted(()=>{
 顶层组件可以向底层组件传递方法，底层组件调用方法修改顶层组件的数据
 
 ![image.png](images/Vue3/14.png)
+
+使用传递的方法：
+
+```js
+setCount()
+```
 
 
 

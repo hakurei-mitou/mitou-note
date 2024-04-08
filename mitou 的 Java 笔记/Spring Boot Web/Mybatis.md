@@ -429,10 +429,13 @@ spring.datasource.druid.password=1234
 
 - `${...}`
 
-	对表名、列表进行动态设置时使用。
+  对表名、列名进行动态设置时使用。
 
-	- 拼接 SQL ，直接将参数值拼接在 SQL 语句中，存在 SQL 注入问题
-	- 在项目开发中，建议使用 `#{...}`，生成预编译 SQL，防止 SQL 注入。
+  - 不是获取该变量的值到 SQL，而是获取该变量的值对应的字段的值到 SQL 。
+
+
+
+如果拼接 SQL ，直接将参数值拼接在 SQL 语句中，存在 SQL 注入问题，在项目开发中，建议使用 `#{...}`，生成预编译 SQL，防止 SQL 注入。
 
 ### 预编译 SQL
 
@@ -578,6 +581,8 @@ class SpringbootMybatisCrudApplicationTests {
 默认情况下，执行插入操作不会返回主键值（或其它自动生成的属性）。
 
 可以在 Mapper 接口中的方法上添加 @Options 注解，并在注解中指定属性 `useGeneratedKeys=true` 和 `keyProperty="实体类属性名"` 。
+
+注意，@Options 注解只能和注解 SQL 语句搭配使用，使用 mybatis 配置文件时，需要在配置文件中指定主键返回。
 
 主键返回代码实现：
 
@@ -1005,6 +1010,8 @@ public void testList(){
 }
 ~~~
 
+注意，在 MyBatis 配置文件中，Integer 类型的 0 值和空字符串会被认为是相等的，即` 0 == ''` 为 True 。
+
 上述写法并不完善，考虑以下测试方法参数：
 
 参数设置一：
@@ -1324,6 +1331,17 @@ XML 映射文件：
 ```
 
 ![image-20231008213601419](images/Mybatis/image-20231008213601419.png)
+
+### 配置文件主键返回
+
+使用 `useGeneratedKeys="true" keyProperty="id"` 属性：
+
+```xml
+<insert id="insertOneTest" useGeneratedKeys="true" keyProperty="id" >
+        insert into test(name,descr,url,create_time,update_time) 
+        values(#{name},#{descr},#{url},now(),now())
+    </insert>
+```
 
 ## PageHelper
 

@@ -436,6 +436,7 @@ Body 部分的格式是固定的，必须写成 `This reverts commit <hash>.`，
 
   - 若不指定本地目录，会自动设为克隆的仓库名，克隆后可进一步用命令切换版本。
   - 使用 `git clone -b <分支名> <git_url>`  克隆指定分支。
+  - `git clone --depth=1`，克隆最新的版本（最近一次 commit）。
 
 - `git fetch [远端名] [远端分支名][:在本地重命名的分支名]`
 

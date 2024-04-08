@@ -88,6 +88,21 @@ Ctrl + Shift + Space ：主动触发参数提示
 - Fold All ，(Ctrl+K Ctrl+0) folds all regions in the editor.
 - Unfold All ， (Ctrl+K Ctrl+J) unfolds all regions in the editor.
 
+### 多光标编辑
+
+- 连续行选中
+
+	- 按住 Alt + 鼠标左键滑动（可通过 Ctrl + right 等方式进一步控制各光标的位置）。
+	- 按住 Ctrl + Alt，然后 Up 或 Down 也可。
+
+- 多处选中
+
+	按住 Alt + 左键点击。
+
+### 重命名变量
+
+选中一个变量，然后按 F2 。
+
 ## 常用插件
 
 ### 各种语言
@@ -100,7 +115,7 @@ Ctrl + Shift + Space ：主动触发参数提示
 
 #### Python
 
-Anaconda 插件已经下架，但其只是扩展包，仍可使用 Python 扩展，解释器路径选择 Conda 路径中的 Python 解释器即可。
+解释器路径可以选择 Conda 路径中的 Python 解释器。
 
 ![image-20210404223215337](images/VS Code/image-20210404223215337.png)
 
@@ -115,8 +130,6 @@ Ctrl + Shift + P 打开命令面板，搜索即可使用 jupyter。（Python 扩
 ![img](images/VS Code/clipboard-1617546125537.png)
 
 ![img](images/VS Code/clipboard-1617546131149.png)
-
-![image-20220201102414786](images/VS Code/image-20220201102414786.png)
 
 ### 前端插件
 
@@ -158,6 +171,18 @@ SQLTools
 	- MySQL 8.0 改变了密码加密方式：更换协议，改变端口。（具体参见文档） 
 	- 不支持 NaN：指定相关项的确切值。
 
+## 好用配置
+
+### editor label
+
+EnablePreview：单击预览，减少浏览文件时标签页打开量。
+
+SeparatePinnedEditorTabs：将 pined editor label 单独显示在一行。
+
+TabSizing：控制 editor label 的大小。
+
+Wrap Tabs：editor label 超出单行后，可以多行显示。
+
 ## C++ Windows 配置文件
 
 入门配置，可做参考。
@@ -172,35 +197,11 @@ SQLTools
 
 ![img](images/VS Code/clipboard-1617546253741.png)
 
-如果没有，自己建，内部可以配置各种编译选项
+如果没有，自己建，内部可以配置各种编译选项。
 
-**可能需要下载相应语言编译器**
+需要下载相应语言编译器。
 
-建议把编译器文件夹放在C盘根目录下
-
-**下载编译器后设置系统环境变量（步骤如下）：**
-
-控制面板->系统（或电脑属性）->高级系统设置
-
-![img](images/VS Code/clipboard-1617546266468.png)
-
-环境变量
-
-![img](images/VS Code/clipboard-1617546280358.png)
-
-在系统变量 Path 中新建
-
-![img](images/VS Code/clipboard-1617546297109.png)
-
-新建编译器 `C:\mingw64\bin` 路径即可
-
-![img](images/VS Code/clipboard-1617546311179.png)
-
-**三个文件内容及意义如下：**
-
-![img](images/VS Code/clipboard-1617546328907.png)
-
-该文件不能添加注释，但可以修改参数
+c_cpp_properties.json 文件不能添加注释，但可以修改参数：
 
 ```json
 {
@@ -208,7 +209,7 @@ SQLTools
         {
             "name": "MinGW64",
             "intelliSenseMode": "gcc-x64",
-            "compilerPath": "C:/mingw64/bin/g++.exe",
+            "compilerPath": "C:/mingw64/bin/g++.exe",   // 编译器路径
             "includePath": [
                 "${workspaceFolder}"
             ],
@@ -219,11 +220,9 @@ SQLTools
 }
 ```
 
-**编译器路径不正确，会导致找不到头文件等错误**
+如果编译器路径不正确，会导致找不到头文件等错误。
 
-![img](images/VS Code/clipboard-1617546397888.png)
-
-调试器路径注意不要错误
+launch.json 调试器路径注意不要错误：
 
 ```json
 {
@@ -255,9 +254,7 @@ SQLTools
 }
 ```
 
-![img](images/VS Code/clipboard-1617546426453.png)
-
-![img](images/VS Code/clipboard-1617546441286.png)
+task.json：
 
 ``` json
 {
@@ -313,13 +310,16 @@ SQLTools
 }
 ```
 
-**新建一个build文件夹（可在上述文件中指定），用于存放可执行文件**
-
-**要运行代码，必须要配置插件，并且新建文件要注意后缀名**
+其中，新建一个build文件夹（可在上述文件中指定），用于存放可执行文件。
 
 ## python 调试
 
 更全面的设置见[官方文档参考](https://code.visualstudio.com/docs/python/debugging#_debugging-by-attaching-over-a-network-connection)
+
+注意：
+
+- launch 针对当前主动启动的新的程序。
+- attach 针对已启动的旧的程序。
 
 ### 命令行脚本
 
@@ -356,6 +356,8 @@ SQLTools
 `configurations` 默认执行第一条配置。
 
 配置多条时，可以依据不同的 `name` 选择配置项。
+
+args 是字符串数组，表示命令行中空格分隔的参数。
 
 ### debugpy  方式
 
@@ -572,8 +574,6 @@ set(CMAKE_BUILD_TYPE "Debug")
 
 首先将 remote SSH 设置为免密登录。
 
-
-
 修改 ssh 配置文件：？？？？？？
 
 ```
@@ -584,4 +584,10 @@ Host 主机名
   ForwardX11 yes
   ForwardX11Trusted yes
 ```
+
+## Web 应用调试
+
+在需要打断点的位置写上 `debugger` ，然后启动 VS code 的调试即可（需要生成 `launch.json`）。
+
+更多内容可见 Chrome 的笔记，最好使用 Chrome 调试，功能更多。
 

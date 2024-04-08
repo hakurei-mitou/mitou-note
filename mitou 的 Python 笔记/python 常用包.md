@@ -2,7 +2,7 @@
 
 ## os
 
-虽然可以通过 `!`  使用系统命令，但 os 包能够提供跨平台的统一接口。
+虽然可以通过 `!`  使用系统命令，但代码包能够提供跨平台的统一接口。
 
 ```python
 import os
@@ -15,8 +15,11 @@ os.getcwd()   # 获取当前工作目录
 
 从 python3.4 开始，pathlib 已经正式成为标准库，可用于以更简便的方式取代 os 库。
 
+pathlib 的一些扩展操作可以搭配 shutil 包使用。
+
 ```python
 import pathlib
+import shutil
 from pathlib import Path
 
 
@@ -115,7 +118,8 @@ def parse_args():
         required=True,   # 必须显式传入该参数
         choices=['demo', 'demoB', 'demoC'],   # 限定参数的可能值
         dest='name',   # 指定调用参数名，默认为传入参数名
-        nargs=2   # 指定可以传入的参数个数，存储为列表，多个参数必须要在 choices 内
+        nargs=2,   # 指定可以传入的参数个数，存储为列表，多个参数必须要在 choices 内
+        action=''   # action 参数，指明应当如何处理一个参数
     )
 
     args = parser.parse_args()
@@ -136,7 +140,7 @@ N   参数的绝对个数（例如：3）
 '+'   无限，并且至少一个参数（1 或无限参数）
 
 
-# 对于传入 bool 的情况:
+# 对于传入 bool 的情况:（建议使用 action 参数）
 # bool() 这个类型函数，有：
 bool('True') = True
 bool('False') = True # 会把 True 和 Flase 都解析为 True
@@ -156,5 +160,30 @@ parser.add_argument(
 )
 ```
 
+action 参数详解：详见 [说明文档](https://docs.python.org/zh-cn/3/library/argparse.html#action)
 
+action 表示触发动作，可以由参数触发：
+
+```python
+可能值：
+'store', 'store_const', 'store_true', 'append', 'append_const', 'count', 'help', 'version'
+
+其中，
+'store_true' 和 'store_false' 是 'store_const' 分别用作存储 True 和 False 值的特殊用例。
+它们的默认值分别为 False 和 True。
+例如:
+    
+设置：
+parser = argparse.ArgumentParser()
+parser.add_argument('--foo', action='store_true')   # 触发后为 true
+parser.add_argument('--bar', action='store_false')  # 触发后为 false
+parser.add_argument('--baz', action='store_false')  # 触发后为 false
+parser.parse_args('--foo --bar'.split())   # --参数：触发该参数
+输出：
+Namespace(foo=True, bar=False, baz=True)   #， baz 未为触发，为默认的 True
+
+另外：
+触发时，action 指定的值优先级高。
+未触发时，default 指定的值优先级高。
+```
 

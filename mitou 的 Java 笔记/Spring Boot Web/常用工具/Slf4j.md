@@ -33,6 +33,10 @@ public class Demo1 {
 
     public static void main(String[] args) {
         log.info("Hello world!");
+	
+        // 传入参数
+        Integer number = 3;
+        log.info("Hello {} world", number);
     }
 }
 
