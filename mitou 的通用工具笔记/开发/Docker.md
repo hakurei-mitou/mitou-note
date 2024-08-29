@@ -7,8 +7,6 @@ Docker 是一个开源应用容器引擎。
 - **Docker** 是**操作系统级**隔离环境，采用沙箱机制，互不影响，应用间就像各自存在于一个操作系统。
 - **虚拟机**是**硬件级**虚拟，应用间就像各自存在于一个计算机。
 
-参考视频 [黑马程序员Docker容器化技术，从零学会Docker教程_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1CJ411T7BK?spm_id_from=pageDriver)
-
 ## 基本概念
 
 - 镜像（Image）
@@ -32,32 +30,14 @@ Docker 是一个开源应用容器引擎。
 
 	运行 Docker 容器的计算机。
 
-- 数据卷（Volume）
-
-	宿主机中的目录或文件，其被挂载到容器中的文件系统。
-
-	- 容器数据持久化
-
-		删除容器后，数据卷仍然存在。
-
-	- 容器与外部通信
-
-		容器可通过数据卷与宿主机和其它机器交换文件。
-
-	- 容器间数据交换
-
-		一个数据卷可被多个容器同时挂载，一个容器也可挂载多个数据卷。
-
-- 数据卷容器（Data Volume Container）
-
-	用一个容器挂载数据卷，然后用其它容器挂载该容器，相当于其它容器也挂载了该数据卷，从而实现了多容器共享数据卷，当有较多数据卷时建议使用数据卷容器。
-	
-	- 数据卷容器以一般方式挂载数据卷。
-	- 其余容器使用 `docker run -id --name "name" --volumes-from <数据卷容器>` 。
-	
 - ID
 
 	Docker 的镜像与容器都使用 SHA 哈希算法，使用时只指定唯一的前几位也可使用。
+
+下文中，规定：
+
+- 以 `容器` 同时指代 `容器名 | 容器 ID` 。
+- 以 `镜像` 同时指代 `<镜像名>[:Tag] | 镜像 ID`，Tag 为版本号，默认为 `latest` 最新版本。
 
 ## 注意事项
 
@@ -94,13 +74,13 @@ Docker 是一个开源应用容器引擎。
 
 	**拉取**镜像。
 
-- `docker rmi <镜像>`（rmi 即 remove mirror）
+- `docker rmi <镜像>`（rmi 即 remove image）
 
 	**删除**镜像，ID 可由镜像信息中查看。
 
-## 容器命令
+![image-20240724144738111](images/Docker/image-20240724144738111.png)
 
-以下以 `容器` 同时指代 `容器名 | 容器 ID` ，以 `镜像` 同时指代 `<镜像名>[:版本号] | 镜像 ID`，不指定版本号则默认 `latest` 。
+## 容器命令
 
 - `docker ps [-a]`
 
@@ -112,7 +92,7 @@ Docker 是一个开源应用容器引擎。
 
 - `docker run <镜像>`
 
-	**创建并启动**容器。
+	**创建**（并启动）容器。
 
 	- `-d`
 
@@ -129,14 +109,21 @@ Docker 是一个开源应用容器引擎。
 	- `-p`
 	
 	  指定**端口映射**，`宿主端口:容器端口`
+	  
+	- `-e`
+	
+	  指定环境变量。
 	
 - `-v`
 	
-  设置**数据卷**，`宿主path:容器path`
+  设置挂载。
 	
-  - path 必须是绝对路径。
-	  - path 不存在则会自动创建。
-
+  - 挂载数据卷：`volume_name:容器path`
+	- 挂载目录：`宿主path:容器path`
+		- 宿主 path 必须以 `/` 或 `./` 开头。
+		- 容器 path 必须是绝对路径。
+		- path 不存在则会自动创建。
+	
 - `docker start <容器>`
 
 	**启动**容器。
@@ -169,9 +156,58 @@ Docker 是一个开源应用容器引擎。
 
 	**删除**容器。
 
-## 其它命令
+## 挂载
 
-### 文件复制
+### 数据卷
+
+（Data Volume）
+
+数据卷是一个逻辑指向，它作为容器目录和宿主目录间的中转映射：
+
+- 容器数据持久化
+
+	删除容器后，数据卷仍然存在。
+
+- 容器与外部通信
+
+	容器可通过数据卷与宿主机和其它机器交换文件。
+
+- 容器间数据交换
+
+	一个数据卷可被多个容器同时挂载，一个容器也可挂载多个数据卷。
+
+- 数据卷的挂载只能在创建容器时配置，创建好的容器不能再设置数据卷。
+
+![image-20240725101911670](images/Docker/image-20240725101911670.png)
+
+上图中：
+
+- 创建了两个数据卷：`conf`、`html`（默认存在于宿主机的`/var/lib/docker/volumes`）
+- Nginx容器内部的`conf`目录和`html`目录分别与两个数据卷关联。
+- 而数据卷 conf 和 html 分别指向了宿主机的`/var/lib/docker/volumes/conf/_data`目录和`/var/lib/docker/volumes/html/_data`目录。
+- 这样一来，容器内的`conf`和`html`目录就 与宿主机的`conf`和`html`目录关联起来，我们称为**挂载**。
+
+挂载后，操作宿主机的 `/var/lib/docker/volumes/html/_data` 就是在操作容器内的 `/usr/share/nginx/html/_data` 目录。
+
+常用命令：
+
+```txt
+docker volume create	创建数据卷
+
+docker volume ls	查看所有数据卷
+
+docker volume rm	删除指定数据卷
+
+docker volume inspect	查看某个数据卷的详情
+
+docker volume prune		清除未使用的数据卷
+```
+
+### 目录
+
+一般来说，可以直接将宿主机目录挂载到容器上。
+
+## 文件复制
 
 - 基本命令
 
@@ -191,24 +227,6 @@ Docker 是一个开源应用容器引擎。
 	- 宿主机的路径可以是相对路径或绝对路径，容器路径只能是绝对路径。
 	- 该命令操作的容器可以是运行状态也可以是停止状态。
 	- 该命令不能复制 `/proc、 /sys、 /dev`、 虚拟内存和容器中 mount 的路径下的文件。
-
-### 虚拟网络
-
-Docker 有多种虚拟网络（虚拟设备）类型，一般使用 bridge 类型，相当于虚拟的网桥，交换机。
-
-在同一个 bridge 网络（即虚拟局域网）中的容器不需要端口映射（到宿主机端口）就可以互相访问。
-
-- `docker network create -d bridge <netName>`
-
-	创建 bridge 网络。
-
-	- `-d`
-
-		指定网络类型。
-
-- `docker run -it <容器> --network <netName>`
-
-	运行容器并连接到指定的 bridge 网络。
 
 ## 镜像原理
 
@@ -260,7 +278,7 @@ Docker 有多种虚拟网络（虚拟设备）类型，一般使用 bridge 类�
 
 	- 最顶层
 
-		第二层和其它上层为**只读镜像**，若要修改，需要在最顶层添加一个读写文件系统，即**可写容器（Container）**。
+		第二层和其它上层为**只读镜像**，若要修改，需要在最顶层添加一个读写文件系统，即**可写容器（Container）**，可写容器即是镜像运行的入口。
 
 - 复用
 
@@ -316,19 +334,154 @@ Dockerfile 是一个文本文件，包含多条指令，每一条指令构建一
 
 - 可将项目制作为 Docker 镜像。
 
+常见指令：
+
+| **指令**       | **说明**                                     | **示例**                     |
+| :------------- | :------------------------------------------- | :--------------------------- |
+| **FROM**       | 指定基础镜像                                 | `FROM centos:6`              |
+| **ENV**        | 设置环境变量，可在后面指令使用               | `ENV key value`              |
+| **COPY**       | 拷贝本地文件到镜像的指定目录                 | `COPY ./xx.jar /tmp/app.jar` |
+| **RUN**        | 执行Linux的shell命令，一般是安装过程的命令   | `RUN yum install gcc`        |
+| **EXPOSE**     | 指定容器运行时监听的端口，是给镜像使用者看的 | EXPOSE 8080                  |
+| **ENTRYPOINT** | 镜像中应用的启动命令，容器运行时调用         | ENTRYPOINT java -jar xx.jar  |
+
 ## 仓库
 
 [Docker Hub](https://hub.docker.com/) 是 Docker 官方的公共镜像仓库。
 
 也可以使用私有仓库存储私人的镜像，最好将私有仓库单独部署到一台服务器上。
 
+## 虚拟网络
+
+Docker 有多种虚拟网络（虚拟设备）类型，一般使用 bridge 类型，相当于虚拟的网桥，交换机。
+
+在同一个 bridge 网络（即虚拟局域网）中的容器不需要端口映射（到宿主机端口）就可以互相访问。
+
+- Docker 的默认网络中
+
+	每个容器会有一个虚拟 IP 地址，但这个 IP 地址在部署后可能发生变化。
+
+- 自定义网络中
+
+	容器间可以使用名称相互访问，部署后可以避免 IP 地址改变的不利影响。
+
+常用命令：
+
+```txt
+docker network create
+创建一个网络
+
+docker network ls
+查看所有网络
+
+docker network rm
+删除指定网络
+
+docker network prune
+清除未使用的网络
+
+docker network connect
+使指定容器连接加入某网络
+
+docker network disconnect
+使指定容器连接离开某网络
+
+docker network inspect
+查看网络详细信息
+```
+
+- `docker network create -d bridge <netName>`
+
+	创建 bridge 网络。
+
+	- `-d`
+
+		指定网络类型。
+
+- `docker run -it <容器> --network <netName>`
+
+	运行容器并连接到指定的 bridge 网络。
+
 ## 服务编排
 
 微服务架构的应用系统一般包含多个微服务，每个微服务一般会部署多个实例。
 
-**Docker Compose** 是一个编排多容器的分布式部署工具，能够管理基于容器的多个微服务。
+**Docker Compose** 是一个编排多容器的分布式部署工具，能够统一管理多个容器。
 
-1. 使用 Dockerfile 定义运行环境镜像。
-2. 使用 `docker-compose.yml` 定义组成应用的各服务。
+1. 使用 Dockerfile 定义项目各组件的容器镜像。
+2. 使用 `docker-compose.yml` 统一管理容器和其它服务（比如网络）。
 3. 运行 `docker-compose up` 启动应用。
 
+### 基本语法
+
+基本配置项就是 docker run 命令所需的各种参数。
+
+示例：
+
+```yaml
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: 123
+    volumes:
+      - "./mysql/conf:/etc/mysql/conf.d"
+      - "./mysql/data:/var/lib/mysql"
+      - "./mysql/init:/docker-entrypoint-initdb.d"
+    networks:
+      - hm-net
+  hmall:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: hmall
+    ports:
+      - "8080:8080"
+    networks:
+      - hm-net
+    depends_on:
+      - mysql
+  nginx:
+    image: nginx
+    container_name: nginx
+    ports:
+      - "18080:18080"
+      - "18081:18081"
+    volumes:
+      - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
+      - "./nginx/html:/usr/share/nginx/html"
+    depends_on:
+      - hmall
+    networks:
+      - hm-net
+networks:
+  hm-net:
+    name: hmall
+```
+
+### 常见命令
+
+```Bash
+docker compose [OPTIONS] [COMMAND]
+```
+
+| 类型    | **参数或指令** | **说明**                                                     |
+| ------- | :------------- | :----------------------------------------------------------- |
+| OPTIONS | -f             | 指定compose文件的路径和名称                                  |
+|         | -p             | 指定project名称。project就是当前compose文件中设置的多个service的集合，是逻辑概念 |
+|         |                |                                                              |
+| COMMAND | up             | 创建并启动所有service容器                                    |
+|         | down           | 停止并移除所有容器、网络                                     |
+|         | ps             | 列出所有启动的容器                                           |
+|         | logs           | 查看指定容器的日志                                           |
+|         | stop           | 停止指定容器                                                 |
+|         | start          | 启动指定容器                                                 |
+|         | restart        | 重启指定容器                                                 |
+|         | top            | 查看运行的进程                                               |
+|         | exec           | 在指定的运行中容器中执行命令                                 |

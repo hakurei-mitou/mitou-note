@@ -46,10 +46,18 @@
 
 	考研时的笔记，包含知识结构梳理、易错易混要点以及一些简化描述。（年代久远，格式不佳，不建议模仿）
 
-## mitou 的 Java 笔记
+## mitou 的 Java 后端笔记
 
+- Java SE
 - Maven
-- Spring Boot Web
+- Nginx
+- Spring
+	- Spring Framework
+	- Spring MVC
+	- Spring Boot
+	- Spring Cloud
+
+- 各类工具
 
 ## mitou 的 Web 前端笔记
 
@@ -65,13 +73,20 @@
 - 关系型数据库
 	- MySQL
 	- SQL Server
+	- SQLite
+	- H2
+	- IndexedDB
+- 非关系型数据库
+  - Redis
+  - Memcached
+
 - 数据库中间件
-	- Mycat
+  - Mycat
 
 ## mitou 的 Python 笔记
 
 - Django
-- 常用包
+- Python 常用包
 
 ## mitou 的 Linux C++ 笔记
 
@@ -84,7 +99,7 @@
 - 基础算法
 - 算法技巧及注意事项
 - 动态规划
-- 数学
+- 数论
 - 图论
 
 ## mitou 的通用工具笔记
@@ -92,14 +107,20 @@
 以下是粗略的分类，各工具完全可以灵活使用。
 
 - 文档
-	- Vim
 	- Markdown
 	- 键盘指法
 - 开发
-	- VS Code
-	- Git
+	- AI 工具
+	- Chrome
 	- Docker
-	- 命名规范
+	- Git
+	- GitHub
+	- IntelliJ IDEA
+	- Vim
+	- VS Code
+	- 内网穿透
+	- 虚拟机
+	- 正则表达式
 - 人工智能
 	- Jupyter
 	- Matlab

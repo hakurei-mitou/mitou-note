@@ -14,7 +14,7 @@
 
 ![image-20230723152616671](images/ViT/image-20230723152616671.png)
 
-使用 Transformer 的 Encdoer 。
+使用 Transformer 的 Encoder 。
 
 输出是一个 sequence ，为了预测类别，作者借鉴 BERT 的 [class] 特殊 token（称为 cls token），在输入序列前添加一个 [class] token ，它是一个 learnable embedding 。同时，[class] 含有 position embedding ，这个 position embedding 也是可学习的。
 
