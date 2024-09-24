@@ -13,8 +13,8 @@ HTTP 协议和 WebSocket 协议对比：
 
 - 通信方向
 
-	- HTTP 通信是**单向**的，基于请求响应模式。
-	- WebSocket 支持**双向**通信。
+	- HTTP 通信是**单向**的，基于请求响应模式。（只能客服主动请求服务器）
+	- WebSocket 支持**双向**通信。（可以服务器发送给客户端）
 
 - 底层共同点
 
@@ -34,6 +34,14 @@ WebSocket 缺点：
 - 服务器长期维护长连接需要一定的成本
 - 各个浏览器支持程度不一
 - WebSocket 是长连接，受网络限制比较大，需要处理好重连
+
+协议标识：
+
+```
+协议标识符是 ws（如果加密，则为 wss）
+例：
+ws://example.com:80/some/path
+```
 
 ## 案例
 
@@ -187,6 +195,7 @@ public class WebSocketTask {
     <meta charset="UTF-8">
     <title>WebSocket Demo</title>
 </head>
+    
 <body>
     <input id="text" type="text" />
     <button onclick="send()">发送消息</button>
@@ -194,6 +203,7 @@ public class WebSocketTask {
     <div id="message">
     </div>
 </body>
+    
 <script type="text/javascript">
     var websocket = null;
     var clientId = Math.random().toString(36).substr(2);

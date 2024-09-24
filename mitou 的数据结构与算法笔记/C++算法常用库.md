@@ -1,4 +1,4 @@
-# C++ 常用库
+# C++ 算法常用库
 
 当前列表只列出部分函数，并不会将库中的函数全部列出。
 
@@ -218,7 +218,7 @@ C 改进库
 	
 - upper_bound
 
-	返回指向第一个大于给定值的元素的迭代器
+	返回第一个大于给定值的元素的迭代器
 	
 - binary_search
 
@@ -610,6 +610,20 @@ unordered
 - 多级比较
 	- 优先级相等的元素的入队出队顺序不确定。
 	- 考虑增加参数，重载为多级比较，以严格限定顺序。
+
+自定义类型重载符号：
+
+```c++
+bool operator < (const Node & a, const Node & b) {
+    return a.value < b.value;   // value 代表优先级，value 越大，优先级越大，越靠前
+}
+```
+
+可以传入函数的地方可以用 Lambda 表达式：
+
+```c++
+sort(arr, arr + len, [](Node & a, Node & b) {return a.value < b.value;});
+```
 
 #### 关联容器的选择
 
