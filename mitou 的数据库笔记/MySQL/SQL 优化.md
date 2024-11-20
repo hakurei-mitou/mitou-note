@@ -88,13 +88,13 @@ explain select 字段列表 from 表名 where 条件;
 
 - 批量插入
 
-	每条 insert 都要重新与数据库建立连接。建议每条 insert 可以插入 500 ~ 600 条数据。
+	如果应用服务的每条 insert 都要重新与数据库建立连接。建议每条 insert 可以插入 500 ~ 600 条数据。
 
 - 手动提交事务
 
 - 主键顺序插入
 
-	见页分裂。
+	防止乱序插入导致的频繁的页分裂。
 
 - 大批量数据插入
 
@@ -120,7 +120,7 @@ explain select 字段列表 from 表名 where 条件;
 
 - 页分裂
 
-	主键乱序插入会导致存储 B-Tree 结点数据的页分裂，使插入效率降低。
+	主键乱序插入会导致存储 B-Tree 结点数据的频繁页分裂，使插入效率降低。
 
 - 叶合并
 
@@ -130,7 +130,7 @@ explain select 字段列表 from 表名 where 条件;
 
 	- 尽量减少主键长度。
 	- 插入数据时，尽量顺序插入，选择使用 `auto_increment` 自增主键。
-	- 尽量不要使用通用唯一识别码（(Universally unique identifier)， UUID）和自然主键做主键，如身份证号。（过长，也容易乱序插入）
+	- 尽量不要使用通用唯一识别码（Universally unique identifier， UUID）和自然主键做主键，如身份证号（过长，也容易乱序插入）。
 	- 业务操作时，避免对主键的修改。
 
 ### order by 优化
@@ -150,17 +150,27 @@ explain select 字段列表 from 表名 where 条件;
 
 ### limit 优化
 
-- 若在需排序情况下使用 limit，且 limit 指定的偏移量较大，效率非常低。
+如果 limit 指定的偏移量较大，效率非常低。
 
-	创建覆盖索引，先查询所需数据的主键，然后用该主键作为子查询得到最终数据。
+因为 B+ 树的索引结构无法支持直接查询到第 n 条数据（只能直接查询到值为 value 的数据，而无法确定它是第几个，叶子结点的分布情况未知），确定是第几个只能遍历叶子结点。
+
+- 创建覆盖索引，先查询所需数据的主键，然后用该主键作为子查询得到最终数据。
+
+```sql
+explain select * from tb_sku t, (select id from tb_sku order by id limit 2000000,10) a where t.id = a.id;
+```
+
+- 如果主键 id 有序，可以通过 where 走索引缩小 id 的范围。
 
 	```sql
-	explain select * from tb_sku t, (select id from tb_sku order by id limit 2000000,10) a where t.id = a.id;
+	SELECT * FROM tableName
+	WHERE id >= (SELECT id FROM tableName ORDER BY id LIMIT 2000000 , 1)
+	LIMIT 10;
 	```
 
 ### count 优化
 
-- 还没有较好的优化方式，自行设置（如在 redis 中）变量记录数量，并维护。
+- 还没有较好的优化方式，自行设置变量记录数量并维护，比如在 redis 中。
 
 - count 的用法
 

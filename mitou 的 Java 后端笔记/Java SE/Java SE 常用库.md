@@ -23,7 +23,7 @@ java 的大部分语言特性都在 java.lang 和 java.util 包内。
 System.out.printf("浮点型变量的值为 " +
                   "%f, 整型变量的值为 " +
                   " %d, 字符串变量的值为 " +
-                  "is %s", floatVar, intVar, stringVar);
+                  " %s", floatVar, intVar, stringVar);
 
 // 输出到字符串变量
 String fs;
@@ -171,7 +171,7 @@ return new String(bytes);
 
 - 错误
 
-  错误不是异常，而是脱离程序员控制的问题。错误在代码中通常被忽略。例如，当栈溢出时，一个错误就发生了，它们在编译时无法被检查到。
+  错误不是异常，而是脱离程序员控制的问题。例如，当栈溢出时，一个错误就发生了，它们在编译时无法被检查到。
 
 所有异常类是从 java.lang.Exception 类继承的子类。
 
@@ -225,7 +225,7 @@ java 中泛型标记符：
 
 - 聚合操作
 
-	类似 SQL 语句一样的操作， 比如 filter, map, reduce, find, match, sorted 等。
+	类似 SQL 语句一样的操作，比如 filter, map, reduce, find, match, sorted 等。
 
 ### 生成流
 

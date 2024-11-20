@@ -542,6 +542,8 @@ pop
 #### 队列等
 
 ```c++
+访问
+    front，back
 修改器
     push_front, push_back
     pop_front, pop_back
@@ -558,6 +560,10 @@ pop
 
 #### set map 等
 
+map 中的数据按照 pair 类型的形式存储，pair.first 为 key， pair.second 为 value 。
+
+需要用 map 存结构体时，为了简单可以存结构体数组的下标（int）。
+
 ```c++
 访问
     []
@@ -570,7 +576,7 @@ pop
     lower_bound
     upper_bound
 修改器
-    insert
+    insert（插入 pair）
     [] 若没有该 key 则插入 value 
     clear
  	erase
@@ -598,30 +604,106 @@ unordered
 - 集合 Set
 - 映射 Map（动词，动名词形式为 Mapping）
 
-#### 优先级
+#### set 和 map 的比较重载
+
+map 默认按照 key 的类型排序，而不是按照内部存储的 pair 排序，所以重载 pair 的比较运算符对 map 无效 。
+
+遍历 map 时，数据类型为 `pair<key, value>` 。
+
+若要以 value 排序，可以把数据放到 vector 中再排序。
+
+```c++
+#include <iostream>
+#include <map>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Node {
+    int x;
+};
+
+bool operator < (const Node & a, const Node & b) {
+    cout << "compare Node" << endl;
+    return a.x < b.x;
+}
+
+bool operator < (const pair<Node, int> & a, const pair<Node, int> & b) {
+    cout << "compare pair<Node, int>" << endl;
+    return a.second < b.second;   // 按照 value 排序
+}
+
+int main() {
+
+    map<Node, int> m;
+    m.insert({{1}, 6});
+    m.insert({{2}, 5});
+    m.insert({{3}, 4});
+    
+    for (auto e : m) {
+        cout << e.first.x << " " << e.second << endl;
+    }
+
+    vector<pair<Node, int>> arr(m.begin(), m.end());   // pair<Node, int>
+    sort(arr.begin(), arr.end());
+
+    for (auto e: arr) {
+        cout << e.first.x << " " << e.second << endl;
+    }
+
+    return 0;
+}
+
+// output:
+compare Node
+compare Node
+compare Node
+compare Node
+compare Node
+compare Node
+compare Node
+1 6
+2 5
+3 4
+compare pair<Node, int>
+compare pair<Node, int>
+3 4
+2 5
+1 6
+```
+
+其中：
+
+- map 以 key 类型排序，以 pair 类型存储，key 是 pair.first 。
+- vector 以 pair 类型存储，以 pair 排序。
+
+#### 优先级比较
 
 以优先队列为例。
 
 - STL **重载比较符号**操作，只能重载小于（$\lt$）号
 - 容器比较的是元素优先级
-	- 优先级高的先出队（即小于号比较的数字的意义是优先级大小）
-	- 比如 int 类型默认较大的数优先级高，先出队（数字小则优先级小，不优先）。
-
+	- 小于号（重载函数）比较是其两个参数对应元素的优先级大小。
+	- 优先级高（数值大）则在前，更优先，先出队。
 - 多级比较
 	- 优先级相等的元素的入队出队顺序不确定。
 	- 考虑增加参数，重载为多级比较，以严格限定顺序。
 
-自定义类型重载符号：
+自定义类型重载符号： 
 
 ```c++
-bool operator < (const Node & a, const Node & b) {
-    return a.value < b.value;   // value 代表优先级，value 越大，优先级越大，越靠前
+// 最短路问题的优先队列中常用：
+bool operator < (const Node & a, const Node & b) {   // 比较 a 和 b 的优先级，返回（是否 a 的优先级小于 B 的优先级）
+    return a.dist > b.dist;	// 使 dist 值更大的，在被重载的 < 号中表现为优先级更小（被重载的小于号返回 true）
+                               // 如果 a.dist > b.dist（结果为 true）， 那么 a 的优先级小于 b 的优先级（operator < 函数返回 true）。
 }
 ```
 
 可以传入函数的地方可以用 Lambda 表达式：
 
 ```c++
+// 排序中常用：
 sort(arr, arr + len, [](Node & a, Node & b) {return a.value < b.value;});
 ```
 
