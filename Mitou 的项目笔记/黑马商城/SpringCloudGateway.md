@@ -395,22 +395,22 @@ public RequestInterceptor userInfoRequestInterceptor(){
 
 其中：
 
-- 过滤器
+- 过滤器（Spring Gateway 提供的网关过滤器）
 
 	登录校验，获取用户信息到请求头。
 
-	- 在网关内
+	- 用户请求到达网关时
 
-- 拦截器 A
+- 拦截器 A（Spring MVC 提供的拦截器）
 
 	获取用户信息到 ThreadLocal 。
 
-	- 网关到微服务，微服务到微服务
+	- 网关到微服务，微服务到微服务。
 	- 拦截点是请求到达微服务时。
 
-- 拦截器 B
+- 拦截器 B（OpenFeign 提供的拦截器接口，基于 Spring MVC）
 
 	获取用户信息到请求头。
 
-	- 微服务到微服务
+	- 微服务到微服务。
 	- 拦截点是微服务发出请求时。

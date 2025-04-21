@@ -44,7 +44,7 @@ RabbitMQ 的架构：
 
 RabbitMQ 官方提供的 Java 客户端编码相对复杂，一般结合 Spring 的 SpringAMQP 使用。
 
-SpringAMQP提供了三个功能：
+SpringAMQP  提供了三个功能：
 
 - 自动声明队列、交换机及其绑定关系。
 - 基于注解的监听器编码方式，异步接收消息。
@@ -163,7 +163,10 @@ Exchange 只负责转发消息，不具备存储消息的能力，因此如果�
 
 ![image-20240819192912352](images/RabbitMQ/image-20240819192912352.png)
 
-- 队列和交换机通过 BindingKey 绑定。（不同队列可指定相同 BindingKey）
+- 队列和交换机通过 BindingKey 绑定。
+	- 一个队列可绑定多个 BindingKey 。
+	- 不同队列可绑定相同 BindingKey 。
+
 - 消息在发送时需要指定 RoutingKey ，会被路由到所有 BindingKey 与该 RoutingKey 一致的队列中。
 
 #### Topic
@@ -177,7 +180,7 @@ Exchange 只负责转发消息，不具备存储消息的能力，因此如果�
 
 ![image-20240819193509367](images/RabbitMQ/image-20240819193509367.png)
 
-假如此时publisher发送的消息使用的`RoutingKey`共有四种：
+假如此时 publisher 发送的消息使用的`RoutingKey`共有四种：
 
 - `china.news `代表有中国的新闻消息；
 - `china.weather` 代表中国的天气消息；
@@ -407,13 +410,13 @@ public class MqConfig {
 
 ##### 定义 ConfirmCallback
 
-每个消息发送时的处理逻辑不一定相同，因此 ConfirmCallback 需要在每次发消息时定义。具体来说，是在调用RabbitTemplate中的convertAndSend方法时，多传递一个 CorrelationData 参数。
+每个消息发送时的处理逻辑不一定相同，因此 ConfirmCallback 需要在每次发消息时定义。具体来说，是在调用 RabbitTemplate 中的 convertAndSend 方法时，多传递一个 CorrelationData 参数。
 
 CorrelationData 包含：
 
 - `id`
 
-	消息的唯一标识，MQ对不同的消息的回执以此做判断，避免混淆
+	消息的唯一标识，MQ 对不同的消息的回执以此做判断，避免混淆
 
 - `SettableListenableFuture`
 
@@ -450,7 +453,7 @@ void testPublisherConfirm() {
 
 开启生产者确认比较消耗MQ性能，一般不建议开启。
 
-路由失败和交换机名称错误都是可以避免的编程错误，而 MQ 内部故障发生概率非常低，并且只需要开启 ConfirmCallback 处理 NACK 就行。
+路由失败和交换机名称错误都是可以避免的编程错误，而 MQ 内部故障发生概率非常低，所以只需要开启 ConfirmCallback 处理 NACK 就行。
 
 ### MQ 可靠性
 
@@ -530,7 +533,7 @@ spring:
 其中：
 
 - 消费者在失败后消息不会 requeue 到队列，而是在消费者本地重试（即存储在消费者内，并重试处理消息）。
-- 重试最大次数后，抛出`AmqpRejectAndDontRequeueException`异常，并给 queue 返回 reject ，同时抛弃消息。
+- 重试最大次数后，抛出`AmqpRejectAndDontRequeueException`异常，并给 queue 返回 reject 抛弃消息。
 
 ##### 失败重试策略
 
@@ -650,11 +653,11 @@ public void markOrderPaySuccess(Long orderId) {
 
 MQ 通知仍然有因为网络失败的可能性，这种情况下如何保证订单的支付状态一致呢？
 
-- 可以由交易服务自己**主动去查询**支付状态，这样即便支付服务的MQ通知失败，依然能通过主动查询来保证订单状态的一致。
+- 可以由交易服务自己**主动去查询**支付状态，这样即便支付服务的 MQ 通知失败，依然能通过主动查询来保证订单状态的一致。
 
 ![image-20240820140157214](images/RabbitMQ/image-20240820140157214.png)
 
-其中，黄色部分就是兜底方案：
+其中，黄色部分：
 
 - 收到通知就立刻更新支付状态。
 - 在没有收到通知时，设置一个定时任务作为兜底方案，定期判断支付状态，如果发现订单已经支付，则立刻更新订单状态为已支付。
@@ -667,10 +670,14 @@ MQ 通知仍然有因为网络失败的可能性，这种情况下如何保证�
 
 例如，设置一个延迟任务，在用户下单后的第30分钟检查订单支付状态，如果发现未支付，应该立刻取消订单，释放库存。
 
+
+
 可以用 RabbitMQ 实现延迟任务，有两种方式：
 
 - 死信交换机
 - 延迟消息插件
+
+
 
 RabbitMQ 采用懒加载和垃圾回收的方式以减少大量消息过期时间检测对 CPU 的消耗：
 

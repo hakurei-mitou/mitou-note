@@ -275,3 +275,7 @@ LaTeX 中在英文字母前加 `\mathcal` 即可。
 - $\nabla$
 
 	名为 Nabla ，梯度算子，向量微分算子。
+
+## Mermaid
+
+语法见官网示例即可[官网文档](https://mermaid.js.org/syntax/flowchart.html)

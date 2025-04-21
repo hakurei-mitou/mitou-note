@@ -684,7 +684,7 @@ compare pair<Node, int>
 
 - STL **重载比较符号**操作，只能重载小于（$\lt$）号
 - 容器比较的是元素优先级
-	- 小于号（重载函数）比较是其两个参数对应元素的优先级大小。
+	- 小于号（重载函数）比较是其两个**函数参数**的优先级大小。
 	- 优先级高（数值大）则在前，更优先，先出队。
 - 多级比较
 	- 优先级相等的元素的入队出队顺序不确定。
@@ -695,7 +695,7 @@ compare pair<Node, int>
 ```c++
 // 最短路问题的优先队列中常用：
 bool operator < (const Node & a, const Node & b) {   // 比较 a 和 b 的优先级，返回（是否 a 的优先级小于 B 的优先级）
-    return a.dist > b.dist;	// 使 dist 值更大的，在被重载的 < 号中表现为优先级更小（被重载的小于号返回 true）
+    return a.dist > b.dist;	// dist 值更大的参数，在被重载的 < 号中表现为优先级更小（被重载的小于号返回 true）
                                // 如果 a.dist > b.dist（结果为 true）， 那么 a 的优先级小于 b 的优先级（operator < 函数返回 true）。
 }
 ```

@@ -154,19 +154,55 @@ explain select 字段列表 from 表名 where 条件;
 
 因为 B+ 树的索引结构无法支持直接查询到第 n 条数据（只能直接查询到值为 value 的数据，而无法确定它是第几个，叶子结点的分布情况未知），确定是第几个只能遍历叶子结点。
 
-- 创建覆盖索引，先查询所需数据的主键，然后用该主键作为子查询得到最终数据。
+#### 基于索引条件快速跳转
 
-```sql
-explain select * from tb_sku t, (select id from tb_sku order by id limit 2000000,10) a where t.id = a.id;
+对于：
+
+```
+SELECT * FROM tb_sku ORDER BY id LIMIT 1000000, 10;
 ```
 
-- 如果主键 id 有序，可以通过 where 走索引缩小 id 的范围。
+这个语句会让数据库先扫描 **前一百万行**，然后再返回 10 行，非常慢。
 
-	```sql
-	SELECT * FROM tableName
-	WHERE id >= (SELECT id FROM tableName ORDER BY id LIMIT 2000000 , 1)
-	LIMIT 10;
-	```
+
+优化：假设你知道上一页最后一条的 id 是 2000000
+
+```
+SELECT * FROM tb_sku WHERE id > 2000000 ORDER BY id LIMIT 10;
+```
+
+这个方式：
+
+- 利用主键索引（如 id）直接跳到目标位置，
+- 查询速度大大提升，尤其适合“下一页”类型的翻页。
+
+#### 简单属性子查询再返回完整行
+
+把 `LIMIT` 写在只查询主键的子查询中，先缩小范围再取整行数据。
+
+```
+SELECT t.*
+FROM (
+  SELECT id FROM tb_sku ORDER BY id LIMIT 2000000, 10
+) a
+JOIN tb_sku t ON t.id = a.id;
+```
+
+这样可以避免一次性加载整行数据，尤其在 `tb_sku` 表结构较宽时提升明显。
+
+#### 延迟关联（Delayed Join）
+
+类似于上面这个思路，但强调：**先只查 id、再查详情**。
+
+```
+-- 第一步：获取分页主键
+SELECT id FROM tb_sku WHERE ... ORDER BY id LIMIT 10000, 20;
+
+-- 第二步：获取详细信息
+SELECT * FROM tb_sku WHERE id IN (列表);
+```
+
+通常这种方式可以手动控制缓存或分步执行，避免数据库直接做大分页扫描。
 
 ### count 优化
 

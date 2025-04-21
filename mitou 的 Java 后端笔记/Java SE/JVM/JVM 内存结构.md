@@ -4,6 +4,15 @@ JVM 内存布局规定了 Java 在运行过程中内存申请、分配、管理�
 
 不同的 JVM 对于内存的划分方式和管理机制存在着部分差异。
 
+主要结构：
+
+- class 文件
+- 类装载系统（Class Loader SubSystem）
+- 运行时数据区（Runtime Data Areas）
+- 执行引擎（Execution Engine）
+
+**下面这个图很重要：**
+
 ![0082zybply1gc6fz21n8kj30u00wpn5v](images/JVM 内存结构/0082zybply1gc6fz21n8kj30u00wpn5v.jpg)
 
 其中：
@@ -358,6 +367,7 @@ JDK 8 默认开启`-XX:+UseAdaptiveSizePolicy`，不要随意关闭`-XX:+UseAdap
 2. 当 Eden 空间不足时，JVM 将执行新生代的垃圾回收（Minor GC） 
 	- JVM 会把存活的对象转移到 Survivor 中，并且对象年龄 +1 。
 	- 对象在 Survivor 中同样也会经历 Minor GC，每经历一次 Minor GC，对象年龄都会 +1 。
+	- Minor GC 时，Eden 和 Survivor 区域，即整个年轻代区域都会进行垃圾回收。
 3. 对象年龄超过阈值将进入老年代。
 4. 老年代空间不足时，将执行 Major GC 清理老年代空间。
 	- 老年代执行 Major GC 后仍然空间不足，则抛出 OOM（OutOfMemoryError）异常。
@@ -366,7 +376,9 @@ JDK 8 默认开启`-XX:+UseAdaptiveSizePolicy`，不要随意关闭`-XX:+UseAdap
 
 JVM 为每个线程分配了一个私有缓存区域，称为 TLAB（Thread Local Allocation Buffer），它包含在 Eden 空间内。
 
-堆区是线程共享的，任何线程都可以访问到堆区中的共享数据，由于对象实例的创建在 JVM 中非常频繁，因此在并发环境下避免多个线程操作同一地址，需要使用加锁等机制，进而影响分配速度。优先分配到 TLAB 可以避免一系列的线程安全问题，同时还能提升内存分配的吞吐量，这种内存分配方式称为**快速分配策略**。
+堆区是线程共享的，任何线程都可以访问到堆区中的共享数据，由于对象实例的创建在 JVM 中非常频繁，因此在并发环境下避免多个线程操作同一地址，需要使用加锁等机制，进而影响分配速度。
+
+优先分配到 TLAB 可以避免一系列的线程安全问题，同时还能提升内存分配的吞吐量，这种内存分配方式称为**快速分配策略**。
 
 默认情况下，TLAB 空间的内存非常小，仅占有整个 Eden 空间的 1%  。
 

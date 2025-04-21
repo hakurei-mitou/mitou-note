@@ -15,6 +15,7 @@ java 的大部分语言特性都在 java.lang 和 java.util 包内。
 
 - Math 基本数学计算类
 - String 字符串类
+	不可变（immutable）
 
 创建格式化字符串：
 
@@ -33,12 +34,15 @@ fs = String.format("浮点型变量的值为 " +
                    " %s", floatVar, intVar, stringVar);
 ```
 
-- StringBuffer 和 StringBuilder 类
+- StringBuilder 类
 
-	操作可修改字符串。
+  构建字符串的工具类，封装了构建字符串的各种操作（建造者模式，Builder）。可变（mutable）。
 
+- StringBuffer 类
+	适合多线程操作字符串数据的缓冲区（Buffer）。可变（mutable）。
+	
 	- StringBuilder 的方法不是线程安全的（不能并发访问）。（重要区别）
-	- StringBuilder 一般快于 StringBuffer 。
+	- StringBuffer 的方法是同步的，所以一般比 StringBuilder 慢。
 
 ![image-20240402093350110](images/Java SE 常用库/image-20240402093350110.png)
 
@@ -163,15 +167,15 @@ return new String(bytes);
 
 - 检查性异常
 
-  最具代表的检查性异常是用户错误或问题引起的异常，这是程序员无法预见的。例如要打开一个不存在文件时，一个异常就发生了，这些异常在编译时不能被简单地忽略。
+  编译时被强制检查的异常。**必须**在代码中处理（try-catch）或显式声明抛出（throws）。通常用于**外部资源访问**（文件、网络、数据库等），因为这些操作本身就容易失败。
 
 - 运行时异常
 
-	运行时异常是可能被程序员避免的异常。与检查性异常相反，运行时异常可以在编译时被忽略。
+  编译时不会强制检查的异常。是 `RuntimeException` 类及其子类。程序逻辑错误或开发者疏忽的**程序内部 bug**造成的，应通过改正代码逻辑来避免，而不是 try-catch。
 
 - 错误
 
-  错误不是异常，而是脱离程序员控制的问题。例如，当栈溢出时，一个错误就发生了，它们在编译时无法被检查到。
+  严重的系统级错误，通常程序无法恢复。是 `Error` 类及其子类。代表 JVM 本身的问题，不建议进行捕获处理，不是代码逻辑问题。
 
 所有异常类是从 java.lang.Exception 类继承的子类。
 
